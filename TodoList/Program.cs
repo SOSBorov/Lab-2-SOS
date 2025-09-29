@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-namespace lab-2
+namespace lab2
 {
 	internal class Program
 	{
