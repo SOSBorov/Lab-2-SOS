@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-namespace OMGKERDICK
+namespace lab-2
 {
 	internal class Program
 	{
