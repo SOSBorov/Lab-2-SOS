@@ -20,6 +20,10 @@ namespace lab2
 		static void second(string[] args)
         {
             string[] todos;
+			           while (true)
+            {
+                if (ShouldStop( help , profile , add , view , exit , )) break;
+            }
 
         }
 	}
