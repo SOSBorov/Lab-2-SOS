@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-namespace lab2
+namespace todolist
 {
 	internal class Program
 	{
@@ -41,6 +41,9 @@ namespace lab2
                         Console.WriteLine(todos[3]);
                         Console.WriteLine(todos[4]);
                         break;
+						case "profile":
+    		Console.WriteLine(" Пользователь " + fullname  + " возраст - " + age);
+    					break;
                 }
             }
         }
