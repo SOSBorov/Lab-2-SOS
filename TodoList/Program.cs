@@ -16,7 +16,11 @@ namespace lab2
 			int age = currentDate.Year - birthdayDate.Year;
 
 			Console.WriteLine(" Добавлен пользователь " + fullname + ", " + "возраст - " + age);
-			Console.ReadKey();
 		}
+		static void second(string[] args)
+        {
+            string[] todos;
+
+        }
 	}
 }
