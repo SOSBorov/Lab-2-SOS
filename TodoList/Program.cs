@@ -64,6 +64,14 @@ namespace todolist
                             Console.WriteLine("Задача добавлена: " + parts[1]);
                         }
                         break;
+						case "view":
+                Console.WriteLine("Ваши задачи:");
+                        for (int i = 0; i < taskCount; i++)
+                        {
+                            Console.WriteLine($"{i + 1}. {tasks[i]}");
+                        }
+                        if (taskCount == 0) Console.WriteLine("Нет задач.");
+                        break;
 						
                 }
             }
