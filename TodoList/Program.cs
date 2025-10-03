@@ -72,6 +72,9 @@ namespace todolist
                         }
                         if (taskCount == 0) Console.WriteLine("Нет задач.");
                         break;
+						 case "exit":
+                Console.WriteLine("Завершение задачи");
+                        return;
 						
                 }
             }
