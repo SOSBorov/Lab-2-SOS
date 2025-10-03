@@ -44,6 +44,27 @@ namespace todolist
 						case "profile":
     		Console.WriteLine(" Пользователь " + fullname  + " возраст - " + age);
     					break;
+						case "add":
+            Console.WriteLine("введите команду");
+                        string task = Console.ReadLine();
+                        string[] parts = task.Split(' ', 2);
+                        if (parts.Length < 2)
+                        {
+                            Console.WriteLine("Ошибка: используйте формат add текст задачи");
+                        }
+                        else
+                        {
+                            if (taskCount >= task.Length) ;
+                            {
+                                string[] newTask = new string[tasks.Length * 2];
+                                for (int i = 0; i < task.Length; i++) ;
+                                tasks = newTask;
+                            }
+                            tasks[taskCount++] = parts[1];
+                            Console.WriteLine("Задача добавлена: " + parts[1]);
+                        }
+                        break;
+						
                 }
             }
         }
