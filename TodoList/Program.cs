@@ -26,10 +26,10 @@ namespace TodoList
                     switch (input)
                     {
                         case "help":
-                            Console.WriteLine(todos[1]);
-                            Console.WriteLine(todos[2]);
-                            Console.WriteLine(todos[3]);
-                            Console.WriteLine(todos[4]);
+                            Console.WriteLine("profile - выводит данные пользователя");
+                            Console.WriteLine("add - добавляет новую задачу");
+                            Console.WriteLine("view - выводит все задачи");
+                            Console.WriteLine("exit - останавливает выполнение программы.");
                             break;
                         case string s when s.StartsWith("add "):
                             string taskText = s.Substring(4);
