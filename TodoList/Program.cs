@@ -9,6 +9,7 @@ namespace TodoList
         static int age;
         static string[] todos = new string[2];
         static bool[] statuses = new bool[2];
+        static DateTime[] dates = new DateTime[2];
         static int todosCount = 0;
 
         static void Main(string[] args)
@@ -78,6 +79,8 @@ namespace TodoList
             todos[todosCount] = taskText;
             statuses[todosCount] = false;
             todos[todosCount++] = taskText;
+            dates[todosCount] = DateTime.Now;
+            todosCount++;
             Console.WriteLine($"Задача добавлена: {taskText}");
 
         }
@@ -86,13 +89,16 @@ namespace TodoList
             int newSize = todos.Length * 2;
             string[] newTodos = new string[newSize];
             bool[] newStatuses = new bool[newSize];
+            DateTime[] newDates = new DateTime[newSize];
             for (int i = 0; i < todos.Length; i++)
             {
                 newTodos[i] = todos[i];
                 newStatuses[i] = statuses[i];
+                newDates[i] = dates[i];
             }
             todos = newTodos;
             statuses = newStatuses;
+            dates = newDates;
         }
         static void ViewTasks()
         {
@@ -105,7 +111,7 @@ namespace TodoList
 
             for (int i = 0; i < todosCount; i++)
             {
-                Console.WriteLine($"{i + 1}. {todos[i]}");
+                Console.WriteLine($"{i + 1}. {todos[i]}, (дата: {dates[i]})");
             }
         }
         static void ExitProgram()
