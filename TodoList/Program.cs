@@ -1,5 +1,6 @@
 using System.Globalization;
 
+
 namespace TodoList
 {
     internal class Program
@@ -7,6 +8,7 @@ namespace TodoList
         static string fullName;
         static int age;
         static string[] todos = new string[2];
+        static bool[] statuses = new bool[2];
         static int todosCount = 0;
 
         static void Main(string[] args)
@@ -73,18 +75,24 @@ namespace TodoList
             {
                 ExpandArray();
             }
+            todos[todosCount] = taskText;
+            statuses[todosCount] = false;
             todos[todosCount++] = taskText;
             Console.WriteLine($"Задача добавлена: {taskText}");
 
         }
         static void ExpandArray()
         {
-            string[] newTodos = new string[todos.Length * 2];
+            int newSize = todos.Length * 2;
+            string[] newTodos = new string[newSize];
+            bool[] newStatuses = new bool[newSize];
             for (int i = 0; i < todos.Length; i++)
             {
                 newTodos[i] = todos[i];
+                newStatuses[i] = statuses[i];
             }
             todos = newTodos;
+            statuses = newStatuses;
         }
         static void ViewTasks()
         {
