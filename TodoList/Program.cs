@@ -1,4 +1,6 @@
 using System.Globalization;
+using Microsoft.VisualBasic.FileIO;
+using System.ComponentModel;
 
 
 namespace TodoList
@@ -51,6 +53,14 @@ namespace TodoList
                         {
                             AddTask(input.Substring(4));
                         }
+                        else if (input.StartsWith("done "))
+                        {
+                            CompleteTask(input.Substring(5));
+                        }
+                        else if (input.StartsWith("delete "))
+                        {
+                            DeleteTask(input.Substring(7));
+                        }
                         else
                         {
                             Console.WriteLine("Неизвестная команда. Введите help для списка доступных команд.");
@@ -59,12 +69,56 @@ namespace TodoList
                 }
             }
         }
+        static void CompleteTask(string indexStr)
+        {
+            if (!int.TryParse(indexStr, out int index))
+            {
+                Console.WriteLine("Неправильный номер задачи");
+                return;
+            }
+
+            if (index < 1 || index > todosCount)
+            {
+                Console.WriteLine("Задачи с таким номером нет");
+                return;
+            }
+
+            int i = index - 1;
+            statuses[i] = true;
+            dates[i] = DateTime.Now;
+            Console.WriteLine($"Задача {index} сделана");
+        }
+        static void DeleteTask(string indexStr)
+        {
+            if (!int.TryParse(indexStr, out int index))
+            {
+                Console.WriteLine("Неправильный номер задачи");
+                return;
+            }
+
+            if (index < 1 || index > todosCount)
+            {
+                Console.WriteLine("Задачи с таким номером нет");
+                return;
+            }
+
+            int i = index - 1;
+            for (int j = i; j < todosCount - 1; j++)
+            {
+                todos[j] = todos[j + 1];
+                statuses[j] = statuses[j + 1];
+                dates[j] = dates[j + 1];
+            }
+            todosCount--;
+            Console.WriteLine($"Задача {index} удалена");
+        }
         static void ShowHelp()
         {
             Console.WriteLine("profile - выводит данные клиента");
-            Console.WriteLine("add - добавляет новую задачу");
+            Console.WriteLine("add - добавляет новую задачу: add 'описание задачи'");
             Console.WriteLine("view - выводит все задачи");
             Console.WriteLine("exit - останавливает выполнение программы.");
+            Console.WriteLine("delete - удаляет задачу: delete 'номер задачи'");
         }
         static void ShowProfile()
         {
@@ -111,7 +165,8 @@ namespace TodoList
 
             for (int i = 0; i < todosCount; i++)
             {
-                Console.WriteLine($"{i + 1}. {todos[i]}, (дата: {dates[i]})");
+                string status = statuses[i] ? "сделано" : "не сделано";
+                Console.WriteLine($"{i + 1}. {status}  {todos[i]}, (дата: {dates[i]})");
             }
         }
         static void ExitProgram()
