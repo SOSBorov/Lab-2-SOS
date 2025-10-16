@@ -159,6 +159,7 @@ namespace TodoList
             Console.WriteLine("exit - останавливает выполнение программы.");
             Console.WriteLine("delete - удаляет задачу: delete 'номер задачи'");
             Console.WriteLine("update - обновляет задачу: update 'номер задачи' текст");
+            Console.WriteLine("done - выполняет задачу");
         }
         static void ShowProfile()
         {
@@ -172,7 +173,6 @@ namespace TodoList
             }
             todos[todosCount] = taskText;
             statuses[todosCount] = false;
-            todos[todosCount++] = taskText;
             dates[todosCount] = DateTime.Now;
             todosCount++;
             Console.WriteLine($"Задача добавлена: {taskText}");
