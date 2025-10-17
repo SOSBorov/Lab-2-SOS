@@ -7,6 +7,12 @@ namespace TodoList
 {
     internal class Program
     {
+        private const int InitialTasksCapacity = 2;
+        private const string DateFormat = "yyyy";
+        private static string[] tasks = new string[InitialTasksCapacity];
+        private static bool[] taskStatuses = new bool[InitialTasksCapacity];
+        private static DateTime[] taskDates = new DateTime[InitialTasksCapacity];
+        private static int taskCount = 0;
         static string fullName;
         static int age;
         static string[] todos = new string[2];
@@ -207,8 +213,15 @@ namespace TodoList
                 if (taskText.StartsWith("\"") && taskText.EndsWith("\""))
                 {
                     taskText = taskText.Substring(1, taskText.Length - 2);
+                    if (tasks == null || taskStatuses == null || taskDates == null)
+                    {
+                        Console.WriteLine("Ошибка: Массивы задач не инициализированы");
+                        return;
+                    }
                 }
+
             }
+
 
             if (todosCount >= todos.Length)
                 ExpandArray();
