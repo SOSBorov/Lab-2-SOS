@@ -172,6 +172,7 @@ namespace TodoList
             Console.WriteLine("view --status / -s - показать статус задач");
             Console.WriteLine("view --update-date / -d - показать дату изменения");
             Console.WriteLine("view --all / -a - показать все данные");
+            Console.WriteLine("read <номер> - показать полную задачу с деталями");
             Console.WriteLine("exit - останавливает выполнение программы.");
             Console.WriteLine("delete - удаляет задачу: delete 'номер задачи'");
             Console.WriteLine("update - обновляет задачу: update 'номер задачи' текст");
