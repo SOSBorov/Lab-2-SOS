@@ -155,6 +155,7 @@ namespace TodoList
         {
             Console.WriteLine("profile - выводит данные клиента");
             Console.WriteLine("add - добавляет новую задачу: add 'описание задачи'");
+            Console.WriteLine("add -m / --multiline - многострочный ввод задачи (!end для завершения)");
             Console.WriteLine("view - выводит все задачи");
             Console.WriteLine("exit - останавливает выполнение программы.");
             Console.WriteLine("delete - удаляет задачу: delete 'номер задачи'");
@@ -167,16 +168,41 @@ namespace TodoList
         }
         static void AddTask(string taskText)
         {
-            if (todosCount >= todos.Length) ;
+
+            bool isMultiline = taskText.StartsWith("--multiline") || taskText.StartsWith("-m");
+
+            if (isMultiline)
             {
-                ExpandArray();
+                Console.WriteLine("Введите строки задачи (введите !end для завершения):");
+                List<string> lines = new List<string>();
+                while (true)
+                {
+                    Console.Write("> ");
+                    string line = Console.ReadLine();
+                    if (line.Trim() == "!end")
+                        break;
+                    lines.Add(line);
+                }
+                taskText = string.Join("\n", lines);
             }
+            else
+            {
+                taskText = taskText.Trim();
+                if (taskText.StartsWith("\"") && taskText.EndsWith("\""))
+                {
+                    taskText = taskText.Substring(1, taskText.Length - 2);
+                }
+            }
+
+            if (todosCount >= todos.Length)
+                ExpandArray();
+
             todos[todosCount] = taskText;
             statuses[todosCount] = false;
             dates[todosCount] = DateTime.Now;
             todosCount++;
             Console.WriteLine($"Задача добавлена: {taskText}");
-
+            Console.WriteLine(taskText);
         }
         static void ExpandArray()
         {
