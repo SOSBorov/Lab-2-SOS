@@ -61,12 +61,17 @@ namespace TodoList
                         {
                             DeleteTask(input.Substring(7));
                         }
-                        
-                          else if (input.StartsWith("view "))
+
+                        else if (input.StartsWith("view "))
                         {
                             ViewTasks(input.Substring(5));
                         }
-                        
+                        else if (input.StartsWith("read "))
+                        {
+                            ReadTask(input.Substring(5));
+                        }
+
+
                         else if (input.StartsWith("update "))
                         {
                             UpdateTask(input.Substring(7));
@@ -261,6 +266,29 @@ namespace TodoList
             }
 
             Console.WriteLine("------------------------------------------------------------");
+        }
+
+        static void ReadTask(string indexStr)
+        {
+            if (!int.TryParse(indexStr, out int index))
+            {
+                Console.WriteLine("Неверный номер задачи.");
+                return;
+            }
+
+            if (index < 1 || index > todosCount)
+            {
+                Console.WriteLine("Задачи с таким номером нет.");
+                return;
+            }
+
+            int i = index - 1;
+            Console.WriteLine($"Задача {index}:");
+            Console.WriteLine("----------------------------------------");
+            Console.WriteLine(todos[i]);
+            Console.WriteLine("----------------------------------------");
+            Console.WriteLine($"Статус: {(statuses[i] ? "выполнена" : "не выполнена")}");
+            Console.WriteLine($"Дата последнего изменения: {dates[i]}");
         }
 
         static void ExitProgram()
