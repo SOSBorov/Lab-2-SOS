@@ -41,7 +41,7 @@ namespace TodoList
                         break;
 
                     case "view":
-                        ViewTasks();
+                        ViewTasks("");
                         break;
 
                     case "exit":
@@ -61,6 +61,12 @@ namespace TodoList
                         {
                             DeleteTask(input.Substring(7));
                         }
+                        
+                          else if (input.StartsWith("view "))
+                        {
+                            ViewTasks(input.Substring(5));
+                        }
+                        
                         else if (input.StartsWith("update "))
                         {
                             UpdateTask(input.Substring(7));
@@ -157,6 +163,10 @@ namespace TodoList
             Console.WriteLine("add - добавляет новую задачу: add 'описание задачи'");
             Console.WriteLine("add -m / --multiline - многострочный ввод задачи (!end для завершения)");
             Console.WriteLine("view - выводит все задачи");
+            Console.WriteLine("view --index / -i - показать индексы задач");
+            Console.WriteLine("view --status / -s - показать статус задач");
+            Console.WriteLine("view --update-date / -d - показать дату изменения");
+            Console.WriteLine("view --all / -a - показать все данные");
             Console.WriteLine("exit - останавливает выполнение программы.");
             Console.WriteLine("delete - удаляет задачу: delete 'номер задачи'");
             Console.WriteLine("update - обновляет задачу: update 'номер задачи' текст");
@@ -220,21 +230,39 @@ namespace TodoList
             statuses = newStatuses;
             dates = newDates;
         }
-        static void ViewTasks()
+        static void ViewTasks(string flags)
         {
-            Console.WriteLine("Ваши задачи:");
             if (todosCount == 0)
             {
                 Console.WriteLine("Нет задач.");
                 return;
             }
 
+            bool showIndex = flags.Contains("--index") || flags.Contains("-i") || flags.Contains("--all") || flags.Contains("-a");
+            bool showStatus = flags.Contains("--status") || flags.Contains("-s") || flags.Contains("--all") || flags.Contains("-a");
+            bool showDate = flags.Contains("--update-date") || flags.Contains("-d") || flags.Contains("--all") || flags.Contains("-a");
+
+            Console.WriteLine("СПИСОК ЗАДАЧ:");
+            Console.WriteLine("------------------------------------------------------------");
+
             for (int i = 0; i < todosCount; i++)
             {
-                string status = statuses[i] ? "сделано" : "не сделано";
-                Console.WriteLine($"{i + 1}. {status}  {todos[i]}, (дата: {dates[i]})");
+                string taskText = todos[i];
+                if (taskText.Length > 30)
+                    taskText = taskText.Substring(0, 30) + "...";
+
+                string line = "";
+                if (showIndex) line += $"{i + 1,-5} ";
+                line += $"{taskText,-35}";
+                if (showStatus) line += $"{(statuses[i] ? "выполнена" : "не выполнена"),-12}";
+                if (showDate) line += $"{dates[i]}";
+
+                Console.WriteLine(line);
             }
+
+            Console.WriteLine("------------------------------------------------------------");
         }
+
         static void ExitProgram()
         {
             Console.WriteLine("Завершение программы бай бай ...");
