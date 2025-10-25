@@ -1,6 +1,6 @@
 using System;
 
-namespace TodoListOOP
+namespace TodoList
 {
     internal class Program
     {
@@ -42,10 +42,42 @@ namespace TodoListOOP
                 {
                     Console.WriteLine(profile.GetInfo());
                 }
+
                 else if (command == "add")
                 {
-                    todoList.Add(new TodoItem(argument));
+                    bool isMultiline = argument.StartsWith("--multiline") || argument.StartsWith("-m");
+                    string taskText = "";
+
+                    if (isMultiline)
+                    {
+                        Console.WriteLine("Введите строки задачи (введите !end для завершения):");
+                        string line;
+                        while (true)
+                        {
+                            Console.Write("> ");
+                            line = Console.ReadLine();
+                            if (line.Trim() == "!end")
+                                break;
+
+                            taskText += line + Environment.NewLine;
+                        }
+                    }
+                    else
+                    {
+                        taskText = argument;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(taskText))
+                    {
+                        Console.WriteLine("Текст задачи не может быть пустым!");
+                    }
+                    else
+                    {
+                        todoList.Add(new TodoItem(taskText.Trim()));
+                        Console.WriteLine("Задача успешно добавлена!");
+                    }
                 }
+
                 else if (command == "delete")
                 {
                     if (int.TryParse(argument, out int delIndex))
@@ -94,10 +126,17 @@ namespace TodoListOOP
                         Console.WriteLine("Используйте: update <номер> <новый текст>");
                     }
                 }
+
                 else if (command == "view")
                 {
-                    todoList.View(true, true, true);
+                    bool showAll = argument.Contains("--all") || argument.Contains("-a");
+                    bool showIndex = showAll || argument.Contains("--index") || argument.Contains("-i");
+                    bool showStatus = showAll || argument.Contains("--status") || argument.Contains("-s");
+                    bool showDate = showAll || argument.Contains("--update-date") || argument.Contains("-d");
+
+                    todoList.View(showIndex, showStatus, showDate);
                 }
+
                 else if (command == "read")
                 {
                     if (int.TryParse(argument, out int readIndex))
@@ -124,10 +163,12 @@ namespace TodoListOOP
  help               - показать это меню
  profile            - показать информацию о пользователе
  add <текст>        - добавить задачу
+ add --multiline    - многострочный ввод задачи (!end для завершения)
  delete <номер>     - удалить задачу
  done <номер>       - отметить задачу выполненной
  update <номер> <текст> - изменить текст задачи
  view               - показать список задач
+ view -i -s -d -a   - флаги для отображения индексов, статусов, дат и всех данных
  read <номер>       - показать задачу полностью
  exit               - завершить программу
 ");
