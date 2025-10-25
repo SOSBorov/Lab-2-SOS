@@ -1,6 +1,6 @@
 using System;
 
-namespace TodoListOOP
+namespace TodoList
 {
     public class TodoList
     {
