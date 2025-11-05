@@ -1,10 +1,13 @@
-﻿namespace TodoList
+﻿using System.Globalization;
+
+namespace TodoList
 {
     public class Profile
     {
         public string Name { get; set; } = "Default";
 
         public Profile() { }
+
 
         public Profile(string name)
         {

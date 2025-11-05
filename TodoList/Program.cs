@@ -7,8 +7,6 @@ namespace TodoList
     {
         static void Main(string[] args)
         {
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
-            Console.InputEncoding = System.Text.Encoding.UTF8;
 
             Console.WriteLine("Работу выполнили Vasilevich и Garmash");
             Console.WriteLine("Продиктуйте ваше имя и фамилию мессир: ");

@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Linq;
 using System.Text;
 
@@ -37,13 +37,11 @@ namespace TodoList
                     {
                         var view = new ViewCommand { TodoList = todoList };
 
-                        // Собираем все флаги после "view"
                         var flags = parts.Skip(1)
                                          .Where(p => p.StartsWith("-"))
                                          .Select(p => p.TrimStart('-'))
                                          .ToArray();
 
-                        // Обрабатываем одиночные и комбинированные флаги (-isda)
                         foreach (var flag in flags)
                         {
                             foreach (char f in flag)
@@ -107,7 +105,7 @@ namespace TodoList
 
                 default:
                     Console.WriteLine("Неизвестная команда. Напишите 'help' для списка команд.");
-                    return new NoOpCommand();
+                    return null;
             }
         }
 
@@ -134,40 +132,5 @@ namespace TodoList
             if (current.Length > 0)
                 yield return current.ToString();
         }
-    }
-
-    // help
-    public class HelpCommand : ICommand
-    {
-        public void Execute()
-        {
-            Console.WriteLine(@"
-Доступные команды:
- add <текст>            - добавить задачу
- add -m / --multiline   - многострочный ввод (!end - завершить)
- done <номер>           - отметить задачу выполненной
- update <номер> <текст> - изменить текст задачи
- delete <номер>         - удалить задачу
- view [флаги]           - показать задачи
- profile                - показать профиль пользователя
- help                   - показать список команд
- exit                   - выход
-
-Флаги для view:
- -i, --index          - показывать индекс задачи
- -s, --status         - показывать статус
- -d, --update-date    - показывать дату изменения
- -a, --all            - показывать всё
-
-Примеры:
- view -isda
- view --index --status --all
-");
-        }
-    }
-
-    public class NoOpCommand : ICommand
-    {
-        public void Execute() { }
     }
 }

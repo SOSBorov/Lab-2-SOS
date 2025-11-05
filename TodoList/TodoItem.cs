@@ -6,9 +6,10 @@
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime LastUpdated { get; set; } = DateTime.Now;
 
+
     public override string ToString()
     {
         string status = IsCompleted ? "[x]" : "[ ]";
-        return $"{status} {Text}";
+        return $"{status} {Text} обновлено {LastUpdated: dd.MM.yyyy HH:mm}";
     }
 }

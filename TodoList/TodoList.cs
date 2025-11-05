@@ -75,23 +75,13 @@ namespace TodoList
 
             foreach (var item in _items)
             {
-                string output = "";
+                string output = item.ToString();
 
-                if (showIndex || showAll) output += $"[{item.Id}] ";
-                if (showStatus || showAll) output += item.IsCompleted ? "[x] " : "[ ] ";
-                output += item.Text;
-                if (showUpdateDate || showAll) output += $" (изменено: {item.LastUpdated:dd.MM.yyyy HH:mm})";
+                if (showIndex || showAll)
+                    output = $"[{item.Id}] " + output;
 
                 Console.WriteLine(output);
             }
         }
-    }
-
-    public class TodoItem
-    {
-        public int Id { get; set; }
-        public string Text { get; set; } = "";
-        public bool IsCompleted { get; set; }
-        public DateTime LastUpdated { get; set; } = DateTime.Now;
     }
 }
