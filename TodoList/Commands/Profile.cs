@@ -9,7 +9,7 @@ namespace TodoList
         public Profile() { }
 
 
-        public Profile(string name)
+        public Profile(string name) 
         {
             Name = name;
         }

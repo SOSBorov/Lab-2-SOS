@@ -83,5 +83,19 @@ namespace TodoList
                 Console.WriteLine(output);
             }
         }
+
+        public List<TodoItem> GetAllItems()
+        {
+            return new List<TodoItem>(_items);
+        }
+
+        public void AddLoadedItem(TodoItem item)
+        {
+            _items.Add(item);
+            if (item.Id >= _nextId)
+            {
+                _nextId = item.Id + 1;
+            }
+        }
     }
 }
