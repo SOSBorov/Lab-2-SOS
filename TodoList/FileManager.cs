@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions; // Добавлено для Regex
 
 namespace TodoList
 {
@@ -37,11 +38,17 @@ namespace TodoList
 
         public static void SaveTodos(TodoList todos, string filePath)
         {
-            var lines = new List<string> { "Id,Text,IsCompleted,CreatedAt,LastUpdated" }; 
+            var lines = new List<string> { "Index;Text;IsDone;LastUpdate" }; // Новый заголовок CSV
             foreach (var item in todos.GetAllItems())
             {
-       
-                lines.Add($"{item.Id},\"{item.Text.Replace("\"", "\"\"")}\",{item.IsCompleted},{item.CreatedAt.ToString("o", CultureInfo.InvariantCulture)},{item.LastUpdated.ToString("o", CultureInfo.InvariantCulture)}");
+                // Подготовка текста: замена \n на \\n и экранирование кавычек, затем обрамление в кавычки
+                string textToSave = item.Text.Replace("\n", "\\n").Replace("\"", "\"\"");
+                string formattedText = $"\"{textToSave}\"";
+
+                // Форматирование даты: как в примере "2025-08-21T14:30:00"
+                string formattedDate = item.LastUpdated.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
+
+                lines.Add($"{item.Id};{formattedText};{item.IsCompleted.ToString().ToLowerInvariant()};{formattedDate}");
             }
             File.WriteAllLines(filePath, lines);
             Console.WriteLine($"Задачи сохранены в: {filePath}");
@@ -53,22 +60,46 @@ namespace TodoList
             if (File.Exists(filePath))
             {
                 var lines = File.ReadAllLines(filePath);
-                if (lines.Length > 0) 
+                if (lines.Length > 0)
                 {
-                    foreach (var line in lines.Skip(1)) 
+                    foreach (var line in lines.Skip(1)) // Пропускаем заголовок
                     {
-                        var parts = SplitCsvLine(line);
-                        if (parts.Length == 5)
+                        var parts = SplitCsvLine(line, ';'); // Используем точку с запятой как разделитель
+                        if (parts.Length == 4) // Теперь 4 столбца
                         {
-                            var item = new TodoItem
+                            try
                             {
-                                Id = int.Parse(parts[0]),
-                                Text = parts[1].Replace("\"\"", "\""), 
-                                IsCompleted = bool.Parse(parts[2]),
-                                CreatedAt = DateTime.Parse(parts[3], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-                                LastUpdated = DateTime.Parse(parts[4], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind)
-                            };
-                            todoList.AddLoadedItem(item);
+                                int id = int.Parse(parts[0]);
+                                // Де-экранирование: замена \\n обратно на \n и " на ""
+                                string text = parts[1].Replace("\"\"", "\"").Replace("\\n", "\n");
+                                bool isCompleted = bool.Parse(parts[2]);
+                                // Парсинг даты в указанном формате
+                                DateTime lastUpdated = DateTime.ParseExact(parts[3], "yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
+
+                                var item = new TodoItem
+                                {
+                                    Id = id,
+                                    Text = text,
+                                    IsCompleted = isCompleted,
+                                    // CreatedAt при загрузке не восстанавливается из файла,
+                                    // так как его нет в CSV. Если нужно, добавьте его в CSV.
+                                    // Пока оставляем как есть, будет присвоено DateTime.Now по умолчанию.
+                                    LastUpdated = lastUpdated
+                                };
+                                todoList.AddLoadedItem(item);
+                            }
+                            catch (FormatException ex)
+                            {
+                                Console.WriteLine($"Ошибка формата при загрузке задачи: {line}. {ex.Message}");
+                            }
+                            catch (IndexOutOfRangeException ex)
+                            {
+                                Console.WriteLine($"Ошибка структуры при загрузке задачи: {line}. {ex.Message}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Пропущена строка из-за некорректного количества столбцов: {line}");
                         }
                     }
                 }
@@ -81,8 +112,8 @@ namespace TodoList
             return todoList;
         }
 
-       
-        private static string[] SplitCsvLine(string line)
+        // Обновленный вспомогательный метод для корректного парсинга CSV-строки с учетом кавычек и разделителя
+        private static string[] SplitCsvLine(string line, char separator)
         {
             var parts = new List<string>();
             bool inQuote = false;
@@ -93,18 +124,18 @@ namespace TodoList
                 char c = line[i];
                 if (c == '"')
                 {
-               
+                    // Проверка на экранированную кавычку (дважды подряд)
                     if (i + 1 < line.Length && line[i + 1] == '"')
                     {
                         sb.Append('"');
-                        i++;
+                        i++; // Пропускаем вторую кавычку
                     }
                     else
                     {
-                        inQuote = !inQuote; 
+                        inQuote = !inQuote; // Вход/выход из кавычек
                     }
                 }
-                else if (c == ',' && !inQuote)
+                else if (c == separator && !inQuote)
                 {
                     parts.Add(sb.ToString());
                     sb.Clear();
@@ -114,7 +145,7 @@ namespace TodoList
                     sb.Append(c);
                 }
             }
-            parts.Add(sb.ToString());
+            parts.Add(sb.ToString()); // Добавляем последнюю часть
             return parts.ToArray();
         }
     }

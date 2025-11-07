@@ -10,6 +10,6 @@
     public override string ToString()
     {
         string status = IsCompleted ? "[x]" : "[ ]";
-        return $"{status} {Text} обновлено {LastUpdated: dd.MM.yyyy HH:mm}";
+        return $"{status} {Text}";
     }
 }
