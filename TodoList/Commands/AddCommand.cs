@@ -8,25 +8,32 @@ namespace TodoList
         public bool Multiline { get; set; }
         public TodoList? TodoList { get; set; }
 
+        public string? TodosFilePath { get; set; }
+
         public void Execute()
         {
             if (TodoList == null)
                 throw new InvalidOperationException("TodoList не установлен");
+            if (TodosFilePath == null)
+                throw new InvalidOperationException("Путь к файлу задач не установлен");
+
 
             if (Multiline)
             {
                 TodoList.ReadFromConsoleAndAddMultiline();
-                return;
             }
-
-            if (string.IsNullOrWhiteSpace(Text))
+            else
             {
-                Console.WriteLine("Введите текст задачи.");
-                return;
+                if (string.IsNullOrWhiteSpace(Text))
+                {
+                    Console.WriteLine("Введите текст задачи.");
+                    return;
+                }
+                TodoList.Add(Text!);
+                Console.WriteLine("Задача добавлена.");
             }
 
-            TodoList.Add(Text!);
-            Console.WriteLine("Задача добавлена.");
+            FileManager.SaveTodos(TodoList, TodosFilePath);
         }
     }
 }

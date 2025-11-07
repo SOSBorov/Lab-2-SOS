@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Globalization;
-using System.IO; 
+using System.IO;
 
 namespace TodoList
 {
@@ -14,15 +14,12 @@ namespace TodoList
         {
             Console.WriteLine("Работу выполнили Vasilevich и Garmash");
 
-
             FileManager.EnsureDataDirectory(DataDirectory);
 
             Profile profile;
             TodoList todoList;
 
-
             profile = FileManager.LoadProfile(ProfileFilePath);
-
 
             if (string.IsNullOrEmpty(profile.Name) || profile.Name == "Default")
             {
@@ -32,7 +29,6 @@ namespace TodoList
                 Console.WriteLine("Продиктуйте ваш год рождения (YYYY): ");
                 string yearInput = Console.ReadLine();
                 DateTime birthdayDate;
-
 
                 while (!DateTime.TryParseExact(yearInput, "yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out birthdayDate))
                 {
@@ -44,18 +40,14 @@ namespace TodoList
                 int age = currentDate.Year - birthdayDate.Year;
 
                 Console.WriteLine($" Добавлен пользователь {profile.Name}, возраст - {age}");
-                FileManager.SaveProfile(profile, ProfileFilePath);  
+                FileManager.SaveProfile(profile, ProfileFilePath);
             }
             else
             {
-                
                 Console.WriteLine($"Добро пожаловать обратно, {profile.Name}!");
             }
 
-
-           
             todoList = FileManager.LoadTodos(TodosFilePath);
-
 
             Console.WriteLine("Напишите 'help' для списка команд или 'exit' для выхода.");
 
@@ -72,10 +64,8 @@ namespace TodoList
                 var command = CommandParser.Parse(input, todoList, profile);
                 try
                 {
+                   
                     command?.Execute();
-                    
-                    FileManager.SaveTodos(todoList, TodosFilePath);
-                    FileManager.SaveProfile(profile, ProfileFilePath);
                 }
                 catch (Exception ex)
                 {

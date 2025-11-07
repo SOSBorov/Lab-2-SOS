@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text; 
 
 namespace TodoList
 {
@@ -75,12 +76,26 @@ namespace TodoList
 
             foreach (var item in _items)
             {
-                string output = item.ToString();
+                var outputBuilder = new StringBuilder();
 
-                if (showIndex || showAll)
-                    output = $"[{item.Id}] " + output;
+                if (showAll || showIndex)
+                {
+                    outputBuilder.Append($"[{item.Id}] ");
+                }
 
-                Console.WriteLine(output);
+                if (showAll || showStatus)
+                {
+                    outputBuilder.Append(item.IsCompleted ? "[x] " : "[ ] ");
+                }
+
+                outputBuilder.Append(item.Text);
+
+                if (showAll || showUpdateDate)
+                {
+                    outputBuilder.Append($" обновлено {item.LastUpdated: dd.MM.yyyy HH:mm}");
+                }
+
+                Console.WriteLine(outputBuilder.ToString());
             }
         }
 

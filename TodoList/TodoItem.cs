@@ -1,4 +1,6 @@
-﻿public class TodoItem
+﻿using System; 
+
+public class TodoItem
 {
     public int Id { get; set; }
     public string Text { get; set; } = string.Empty;
@@ -10,6 +12,6 @@
     public override string ToString()
     {
         string status = IsCompleted ? "[x]" : "[ ]";
-        return $"{status} {Text}";
+        return $"{status} {Text} обновлено {LastUpdated: dd.MM.yyyy HH:mm}";
     }
 }
