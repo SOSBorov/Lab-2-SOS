@@ -7,7 +7,6 @@ namespace TodoList
         public string? Text { get; set; }
         public bool Multiline { get; set; }
         public TodoList? TodoList { get; set; }
-
         public string? TodosFilePath { get; set; }
 
         public void Execute()
@@ -17,10 +16,12 @@ namespace TodoList
             if (TodosFilePath == null)
                 throw new InvalidOperationException("Путь к файлу задач не установлен");
 
+            bool addedSuccessfully = false; 
 
             if (Multiline)
             {
                 TodoList.ReadFromConsoleAndAddMultiline();
+                addedSuccessfully = true;
             }
             else
             {
@@ -31,9 +32,13 @@ namespace TodoList
                 }
                 TodoList.Add(Text!);
                 Console.WriteLine("Задача добавлена.");
+                addedSuccessfully = true;
             }
 
-            FileManager.SaveTodos(TodoList, TodosFilePath);
+            if (addedSuccessfully)
+            {
+                FileManager.SaveTodos(TodoList, TodosFilePath);
+            }
         }
     }
 }

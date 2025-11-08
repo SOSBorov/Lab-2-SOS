@@ -6,48 +6,51 @@ namespace TodoList
 {
     class Program
     {
-        private static readonly string DataDirectory = "Data";
-        private static readonly string ProfileFilePath = Path.Combine(DataDirectory, "profile.txt");
-        private static readonly string TodosFilePath = Path.Combine(DataDirectory, "todo.csv");
 
         static void Main(string[] args)
         {
             Console.WriteLine("Работу выполнили Vasilevich и Garmash");
 
-            FileManager.EnsureDataDirectory(DataDirectory);
+            FileManager.EnsureDataDirectory(FileManager.DataDirectory);
 
             Profile profile;
             TodoList todoList;
 
-            profile = FileManager.LoadProfile(ProfileFilePath);
+            profile = FileManager.LoadProfile(FileManager.ProfileFilePath);
 
-            if (string.IsNullOrEmpty(profile.Name) || profile.Name == "Default")
+            if (profile.Name == "Default" || profile.YearOfBirth == 0)
             {
+                Console.WriteLine("Профиль не найден или поврежден. Пожалуйста, введите ваши данные.");
+
                 Console.WriteLine("Продиктуйте ваше имя и фамилию мессир: ");
                 profile.Name = Console.ReadLine();
 
                 Console.WriteLine("Продиктуйте ваш год рождения (YYYY): ");
                 string yearInput = Console.ReadLine();
                 DateTime birthdayDate;
+                int yearOfBirth;
 
                 while (!DateTime.TryParseExact(yearInput, "yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out birthdayDate))
                 {
                     Console.WriteLine("Неверный формат года. Пожалуйста, введите год в формате YYYY:");
                     yearInput = Console.ReadLine();
                 }
+                yearOfBirth = birthdayDate.Year;
+
+                profile.YearOfBirth = yearOfBirth;
 
                 DateTime currentDate = DateTime.Today;
-                int age = currentDate.Year - birthdayDate.Year;
+                int age = currentDate.Year - profile.YearOfBirth;
 
                 Console.WriteLine($" Добавлен пользователь {profile.Name}, возраст - {age}");
-                FileManager.SaveProfile(profile, ProfileFilePath);
+                FileManager.SaveProfile(profile, FileManager.ProfileFilePath);
             }
             else
             {
-                Console.WriteLine($"Добро пожаловать обратно, {profile.Name}!");
+                Console.WriteLine($"Добро пожаловать обратно, {profile.GetInfo()}!");
             }
 
-            todoList = FileManager.LoadTodos(TodosFilePath);
+            todoList = FileManager.LoadTodos(FileManager.TodosFilePath);
 
             Console.WriteLine("Напишите 'help' для списка команд или 'exit' для выхода.");
 
@@ -64,7 +67,6 @@ namespace TodoList
                 var command = CommandParser.Parse(input, todoList, profile);
                 try
                 {
-                   
                     command?.Execute();
                 }
                 catch (Exception ex)

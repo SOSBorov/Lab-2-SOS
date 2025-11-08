@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
-using System.IO; 
+using System.IO;
 
 namespace TodoList
 {
     public static class CommandParser
     {
-        private static readonly string DataDirectory = "Data";
-        private static readonly string ProfileFilePath = Path.Combine(DataDirectory, "profile.txt");
-        private static readonly string TodosFilePath = Path.Combine(DataDirectory, "todo.csv");
-
 
         public static ICommand? Parse(string inputString, TodoList todoList, Profile profile)
         {
@@ -29,7 +25,7 @@ namespace TodoList
 
                 case "add":
                     {
-                        var add = new AddCommand { TodoList = todoList, TodosFilePath = TodosFilePath }; 
+                        var add = new AddCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
                         if (lower.Contains("-m") || lower.Contains("--multiline"))
                         {
                             add.Multiline = true;
@@ -59,19 +55,17 @@ namespace TodoList
                                     case 'a': view.ShowAll = true; break;
                                 }
                             }
-
                             if (flag == "index") view.ShowIndex = true;
                             if (flag == "status") view.ShowStatus = true;
                             if (flag == "update-date") view.ShowUpdateDate = true;
                             if (flag == "all") view.ShowAll = true;
                         }
-
                         return view;
                     }
 
                 case "done":
                     {
-                        var done = new CompleteCommand { TodoList = todoList, TodosFilePath = TodosFilePath }; 
+                        var done = new CompleteCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
                         if (parts.Length > 1 && int.TryParse(parts[1], out int id))
                             done.Id = id;
                         else
@@ -81,7 +75,7 @@ namespace TodoList
 
                 case "update":
                     {
-                        var up = new UpdateCommand { TodoList = todoList, TodosFilePath = TodosFilePath }; 
+                        var up = new UpdateCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
                         if (parts.Length < 3)
                         {
                             Console.WriteLine("Использование: update <номер> <новый текст>");
@@ -97,7 +91,7 @@ namespace TodoList
                 case "remove":
                 case "rm":
                     {
-                        var rm = new RemoveCommand { TodoList = todoList, TodosFilePath = TodosFilePath };
+                        var rm = new RemoveCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
                         if (parts.Length > 1 && int.TryParse(parts[1], out int id))
                             rm.Id = id;
                         else
@@ -106,7 +100,7 @@ namespace TodoList
                     }
 
                 case "profile":
-                    return new ProfileCommand { Profile = profile, ProfileFilePath = ProfileFilePath };
+                    return new ProfileCommand { Profile = profile, ProfileFilePath = FileManager.ProfileFilePath };
 
                 default:
                     Console.WriteLine("Неизвестная команда. Напишите 'help' для списка команд.");
