@@ -21,14 +21,14 @@ namespace TodoList
             if (Multiline)
             {
                 TodoList.ReadFromConsoleAndAddMultiline();
-                addedSuccessfully = true;
+                addedSuccessfully = true; 
             }
             else
             {
                 if (string.IsNullOrWhiteSpace(Text))
                 {
                     Console.WriteLine("Введите текст задачи.");
-                    return;
+                    return; 
                 }
                 TodoList.Add(Text!);
                 Console.WriteLine("Задача добавлена.");
