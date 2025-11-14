@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections; 
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,14 +10,10 @@ namespace TodoList
     {
         private readonly List<TodoItem> _items = new();
         private int _nextId = 1;
+
         public int Count => _items.Count;
-        public TodoItem this[int index]
-        {
-            get
-            {
-                return _items[index];
-            }
-        }
+
+        public TodoItem this[int index] => _items[index];
 
         public void Add(string text)
         {
@@ -57,7 +53,7 @@ namespace TodoList
                 Console.WriteLine("Задача с таким ID не найдена.");
                 return;
             }
-            item.IsCompleted = true;
+            item.Status = TodoStatus.Completed;
             item.LastUpdated = DateTime.Now;
             Console.WriteLine("Задача отмечена как выполненная.");
         }
@@ -83,7 +79,7 @@ namespace TodoList
                 return;
             }
 
-            foreach (var item in _items)
+            foreach (var item in this)
             {
                 var outputBuilder = new StringBuilder();
 
@@ -91,15 +87,19 @@ namespace TodoList
                 {
                     outputBuilder.Append($"[{item.Id}] ");
                 }
+
                 if (showAll || showStatus)
                 {
-                    outputBuilder.Append(item.IsCompleted ? "[x] " : "[ ] ");
+                    outputBuilder.Append(TodoItem.GetStatusSymbol(item.Status) + " ");
                 }
+
                 outputBuilder.Append(item.Text);
+
                 if (showAll || showUpdateDate)
                 {
-                    outputBuilder.Append($" обновлено {item.LastUpdated: dd.MM.yyyy HH:mm}");
+                    outputBuilder.Append($" обновлено {item.LastUpdated:dd.MM.yyyy HH:mm}");
                 }
+
                 Console.WriteLine(outputBuilder.ToString());
             }
         }

@@ -1,17 +1,33 @@
-﻿using System; 
+﻿using System;
+using TodoList; // Добавляем using для доступа к enum
 
 public class TodoItem
 {
     public int Id { get; set; }
     public string Text { get; set; } = string.Empty;
-    public bool IsCompleted { get; set; }
+    public TodoStatus Status { get; set; } = TodoStatus.NotStarted;
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime LastUpdated { get; set; } = DateTime.Now;
 
-
     public override string ToString()
     {
-        string status = IsCompleted ? "[x]" : "[ ]";
-        return $"{status} {Text} обновлено {LastUpdated: dd.MM.yyyy HH:mm}";
+        string statusSymbol = GetStatusSymbol(Status);
+        return $"{statusSymbol} {Text} обновлено {LastUpdated:dd.MM.yyyy HH:mm}";
+    }
+
+    /// <summary>
+    /// Вспомогательный метод для получения символа статуса.
+    /// </summary>
+    public static string GetStatusSymbol(TodoStatus status)
+    {
+        switch (status)
+        {
+            case TodoStatus.NotStarted: return "[ ]";
+            case TodoStatus.InProgress: return "[>]";
+            case TodoStatus.Completed: return "[x]";
+            case TodoStatus.Postponed: return "[-]";
+            case TodoStatus.Failed: return "[!]";
+            default: return "[?]";
+        }
     }
 }

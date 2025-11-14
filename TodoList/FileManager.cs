@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO; // Убедимся, что using System.IO присутствует
+using System.IO;
 using System.Linq;
-using System.Text; // Добавлено для StringBuilder, используется в SplitCsvLine
+using System.Text;
 
 namespace TodoList
 {
     public static class FileManager
     {
-        // <<<< ДОБАВЛЕНО: Статические публичные поля для путей <<<<
         public static readonly string DataDirectory = "Data";
         public static readonly string ProfileFilePath = Path.Combine(DataDirectory, "profile.txt");
         public static readonly string TodosFilePath = Path.Combine(DataDirectory, "todo.csv");
@@ -51,13 +50,14 @@ namespace TodoList
 
         public static void SaveTodos(TodoList todos, string filePath)
         {
-            var lines = new List<string> { "Index;Text;IsDone;LastUpdate" };
-            foreach (var item in todos.GetAllItems())
+            var lines = new List<string> { "Index;Text;Status;LastUpdate" };
+            foreach (var item in todos)
             {
                 string textToSave = item.Text.Replace("\n", "\\n").Replace("\"", "\"\"");
                 string formattedText = $"\"{textToSave}\"";
+                string statusText = item.Status.ToString();
                 string formattedDate = item.LastUpdated.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
-                lines.Add($"{item.Id};{formattedText};{item.IsCompleted.ToString().ToLowerInvariant()};{formattedDate}");
+                lines.Add($"{item.Id};{formattedText};{statusText};{formattedDate}");
             }
             File.WriteAllLines(filePath, lines);
             Console.WriteLine($"Задачи сохранены в: {filePath}");
@@ -68,34 +68,45 @@ namespace TodoList
             var todoList = new TodoList();
             if (File.Exists(filePath))
             {
-                var lines = File.ReadAllLines(filePath);
-                if (lines.Length > 0)
+                var lines = File.ReadAllLines(filePath).Skip(1);
+                foreach (var line in lines)
                 {
-                    foreach (var line in lines.Skip(1))
+                    var parts = SplitCsvLine(line, ';');
+                    if (parts.Length == 4)
                     {
-                        var parts = SplitCsvLine(line, ';');
-                        if (parts.Length == 4)
+                        try
                         {
-                            try
+                            int id = int.Parse(parts[0]);
+                            string text = parts[1].Replace("\"\"", "\"").Replace("\\n", "\n");
+                            string statusFromFile = parts[2];
+                            DateTime lastUpdated = DateTime.ParseExact(parts[3], "yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
+
+                            TodoStatus status;
+                            if (!Enum.TryParse(statusFromFile, true, out status))
                             {
-                                int id = int.Parse(parts[0]);
-                                string text = parts[1].Replace("\"\"", "\"").Replace("\\n", "\n");
-                                bool isCompleted = bool.Parse(parts[2]);
-                                DateTime lastUpdated = DateTime.ParseExact(parts[3], "yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
-                                var item = new TodoItem
+                                if (statusFromFile.Equals("true", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    Id = id,
-                                    Text = text,
-                                    IsCompleted = isCompleted,
-                                    CreatedAt = DateTime.Now,
-                                    LastUpdated = lastUpdated
-                                };
-                                todoList.AddLoadedItem(item);
+                                    status = TodoStatus.Completed;
+                                }
+                                else
+                                {
+                                    status = TodoStatus.NotStarted;
+                                }
                             }
-                            catch (Exception ex)
+
+                            var item = new TodoItem
                             {
-                                Console.WriteLine($"Ошибка при загрузке задачи: {line}. {ex.Message}");
-                            }
+                                Id = id,
+                                Text = text,
+                                Status = status,
+                                CreatedAt = DateTime.Now,
+                                LastUpdated = lastUpdated
+                            };
+                            todoList.AddLoadedItem(item);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Ошибка при загрузке задачи: {line}. {ex.Message}");
                         }
                     }
                 }
