@@ -7,7 +7,6 @@ namespace TodoList
 {
     public static class CommandParser
     {
-
         public static ICommand? Parse(string inputString, TodoList todoList, Profile profile)
         {
             if (string.IsNullOrWhiteSpace(inputString)) return null;
@@ -73,6 +72,34 @@ namespace TodoList
                         return done;
                     }
 
+                case "status":
+                    {
+                        var statusCmd = new StatusCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
+                        if (parts.Length < 3)
+                        {
+                            Console.WriteLine("Использование: status <номер> <новый_статус>");
+                            Console.WriteLine("Доступные статусы: NotStarted, InProgress, Completed, Postponed, Failed");
+                            return null;
+                        }
+
+                        if (!int.TryParse(parts[1], out int id))
+                        {
+                            Console.WriteLine($"Ошибка: '{parts[1]}' не является корректным номером задачи.");
+                            return null;
+                        }
+
+                        if (!Enum.TryParse<TodoStatus>(parts[2], true, out TodoStatus newStatus))
+                        {
+                            Console.WriteLine($"Ошибка: '{parts[2]}' не является корректным статусом.");
+                            Console.WriteLine("Доступные статусы: NotStarted, InProgress, Completed, Postponed, Failed");
+                            return null;
+                        }
+
+                        statusCmd.Id = id;
+                        statusCmd.NewStatus = newStatus;
+                        return statusCmd;
+                    }
+
                 case "update":
                     {
                         var up = new UpdateCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
@@ -108,7 +135,7 @@ namespace TodoList
             }
         }
 
-        private static System.Collections.Generic.IEnumerable<string> SplitArgs(string input)
+        private static IEnumerable<string> SplitArgs(string input)
         {
             bool inQuotes = false;
             var current = new StringBuilder();

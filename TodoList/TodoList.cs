@@ -12,7 +12,6 @@ namespace TodoList
         private int _nextId = 1;
 
         public int Count => _items.Count;
-
         public TodoItem this[int index] => _items[index];
 
         public void Add(string text)
@@ -58,6 +57,22 @@ namespace TodoList
             Console.WriteLine("Задача отмечена как выполненная.");
         }
 
+        /// <summary>
+        /// Изменяет статус задачи по ее ID.
+        /// </summary>
+        public void ChangeStatus(int id, TodoStatus newStatus)
+        {
+            var item = _items.FirstOrDefault(x => x.Id == id);
+            if (item == null)
+            {
+                Console.WriteLine("Задача с таким ID не найдена.");
+                return;
+            }
+            item.Status = newStatus;
+            item.LastUpdated = DateTime.Now;
+            Console.WriteLine($"Статус задачи #{id} изменен на '{newStatus}'.");
+        }
+
         public void Update(int id, string newText)
         {
             var item = _items.FirstOrDefault(x => x.Id == id);
@@ -87,19 +102,15 @@ namespace TodoList
                 {
                     outputBuilder.Append($"[{item.Id}] ");
                 }
-
                 if (showAll || showStatus)
                 {
                     outputBuilder.Append(TodoItem.GetStatusSymbol(item.Status) + " ");
                 }
-
                 outputBuilder.Append(item.Text);
-
                 if (showAll || showUpdateDate)
                 {
                     outputBuilder.Append($" обновлено {item.LastUpdated:dd.MM.yyyy HH:mm}");
                 }
-
                 Console.WriteLine(outputBuilder.ToString());
             }
         }

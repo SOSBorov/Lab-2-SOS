@@ -1,5 +1,5 @@
 ﻿using System;
-using TodoList; // Добавляем using для доступа к enum
+using TodoList;
 
 public class TodoItem
 {
@@ -15,9 +15,6 @@ public class TodoItem
         return $"{statusSymbol} {Text} обновлено {LastUpdated:dd.MM.yyyy HH:mm}";
     }
 
-    /// <summary>
-    /// Вспомогательный метод для получения символа статуса.
-    /// </summary>
     public static string GetStatusSymbol(TodoStatus status)
     {
         switch (status)
