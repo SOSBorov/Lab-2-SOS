@@ -62,43 +62,33 @@ namespace TodoList
                         return view;
                     }
 
-                case "done":
-                    {
-                        var done = new CompleteCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
-                        if (parts.Length > 1 && int.TryParse(parts[1], out int id))
-                            done.Id = id;
-                        else
-                            Console.WriteLine("Использование: done <номер задачи>");
-                        return done;
-                    }
-
                 case "status":
+                {
+                    var statusCmd = new StatusCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
+                    if (parts.Length < 3)
                     {
-                        var statusCmd = new StatusCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
-                        if (parts.Length < 3)
-                        {
-                            Console.WriteLine("Использование: status <номер> <новый_статус>");
-                            Console.WriteLine("Доступные статусы: NotStarted, InProgress, Completed, Postponed, Failed");
-                            return null;
-                        }
-
-                        if (!int.TryParse(parts[1], out int id))
-                        {
-                            Console.WriteLine($"Ошибка: '{parts[1]}' не является корректным номером задачи.");
-                            return null;
-                        }
-
-                        if (!Enum.TryParse<TodoStatus>(parts[2], true, out TodoStatus newStatus))
-                        {
-                            Console.WriteLine($"Ошибка: '{parts[2]}' не является корректным статусом.");
-                            Console.WriteLine("Доступные статусы: NotStarted, InProgress, Completed, Postponed, Failed");
-                            return null;
-                        }
-
-                        statusCmd.Id = id;
-                        statusCmd.NewStatus = newStatus;
-                        return statusCmd;
+                        Console.WriteLine("Использование: status <номер> <новый_статус>");
+                        Console.WriteLine("Доступные статусы: NotStarted, InProgress, Completed, Postponed, Failed");
+                        return null;
                     }
+
+                    if (!int.TryParse(parts[1], out int id))
+                    {
+                        Console.WriteLine($"Ошибка: '{parts[1]}' не является корректным номером задачи.");
+                        return null;
+                    }
+
+                    if (!Enum.TryParse<TodoStatus>(parts[2], true, out TodoStatus newStatus))
+                    {
+                        Console.WriteLine($"Ошибка: '{parts[2]}' не является корректным статусом.");
+                        Console.WriteLine("Доступные статусы: NotStarted, InProgress, Completed, Postponed, Failed");
+                        return null;
+                    }
+
+                    statusCmd.Id = id;
+                    statusCmd.NewStatus = newStatus;
+                    return statusCmd;
+                }
 
                 case "update":
                     {

@@ -16,19 +16,19 @@ namespace TodoList
             if (TodosFilePath == null)
                 throw new InvalidOperationException("Путь к файлу задач не установлен");
 
-            bool addedSuccessfully = false; 
+            bool addedSuccessfully = false;
 
             if (Multiline)
             {
                 TodoList.ReadFromConsoleAndAddMultiline();
-                addedSuccessfully = true; 
+                addedSuccessfully = true;
             }
             else
             {
                 if (string.IsNullOrWhiteSpace(Text))
                 {
                     Console.WriteLine("Введите текст задачи.");
-                    return; 
+                    return;
                 }
                 TodoList.Add(Text!);
                 Console.WriteLine("Задача добавлена.");

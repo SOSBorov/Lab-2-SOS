@@ -44,23 +44,10 @@ namespace TodoList
             Console.WriteLine("Задача удалена.");
         }
 
-        public void MarkComplete(int id)
-        {
-            var item = _items.FirstOrDefault(x => x.Id == id);
-            if (item == null)
-            {
-                Console.WriteLine("Задача с таким ID не найдена.");
-                return;
-            }
-            item.Status = TodoStatus.Completed;
-            item.LastUpdated = DateTime.Now;
-            Console.WriteLine("Задача отмечена как выполненная.");
-        }
-
         /// <summary>
-        /// Изменяет статус задачи по ее ID.
+        /// Устанавливает новый статус для задачи по ее ID.
         /// </summary>
-        public void ChangeStatus(int id, TodoStatus newStatus)
+        public void SetStatus(int id, TodoStatus newStatus)
         {
             var item = _items.FirstOrDefault(x => x.Id == id);
             if (item == null)
@@ -86,6 +73,9 @@ namespace TodoList
             Console.WriteLine("Задача обновлена.");
         }
 
+        /// <summary>
+        /// Отображает задачи с учетом флагов. Статус выводится как текст (например, (Completed)).
+        /// </summary>
         public void ViewCustom(bool showIndex, bool showStatus, bool showUpdateDate, bool showAll)
         {
             if (_items.Count == 0)
@@ -102,15 +92,19 @@ namespace TodoList
                 {
                     outputBuilder.Append($"[{item.Id}] ");
                 }
+
                 if (showAll || showStatus)
                 {
-                    outputBuilder.Append(TodoItem.GetStatusSymbol(item.Status) + " ");
+                    outputBuilder.Append($"({item.Status}) ");
                 }
+
                 outputBuilder.Append(item.Text);
+
                 if (showAll || showUpdateDate)
                 {
                     outputBuilder.Append($" обновлено {item.LastUpdated:dd.MM.yyyy HH:mm}");
                 }
+
                 Console.WriteLine(outputBuilder.ToString());
             }
         }

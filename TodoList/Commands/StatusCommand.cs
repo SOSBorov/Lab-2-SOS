@@ -7,7 +7,7 @@ namespace TodoList
     {
         public TodoList? TodoList { get; set; }
         public int Id { get; set; }
-        public TodoStatus NewStatus { get; set; } 
+        public TodoStatus NewStatus { get; set; }
         public string? TodosFilePath { get; set; }
 
         public void Execute()
@@ -21,7 +21,7 @@ namespace TodoList
 
             if (itemToUpdate != null)
             {
-                TodoList.ChangeStatus(Id, NewStatus);
+                TodoList.SetStatus(Id, NewStatus);
                 FileManager.SaveTodos(TodoList, TodosFilePath);
             }
         }
