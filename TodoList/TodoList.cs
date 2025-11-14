@@ -1,14 +1,23 @@
 ﻿using System;
+using System.Collections; 
 using System.Collections.Generic;
 using System.Linq;
-using System.Text; 
+using System.Text;
 
 namespace TodoList
 {
-    public class TodoList
+    public class TodoList : IEnumerable<TodoItem>
     {
         private readonly List<TodoItem> _items = new();
         private int _nextId = 1;
+        public int Count => _items.Count;
+        public TodoItem this[int index]
+        {
+            get
+            {
+                return _items[index];
+            }
+        }
 
         public void Add(string text)
         {
@@ -82,19 +91,15 @@ namespace TodoList
                 {
                     outputBuilder.Append($"[{item.Id}] ");
                 }
-
                 if (showAll || showStatus)
                 {
                     outputBuilder.Append(item.IsCompleted ? "[x] " : "[ ] ");
                 }
-
                 outputBuilder.Append(item.Text);
-
                 if (showAll || showUpdateDate)
                 {
                     outputBuilder.Append($" обновлено {item.LastUpdated: dd.MM.yyyy HH:mm}");
                 }
-
                 Console.WriteLine(outputBuilder.ToString());
             }
         }
@@ -111,6 +116,19 @@ namespace TodoList
             {
                 _nextId = item.Id + 1;
             }
+        }
+
+        public IEnumerator<TodoItem> GetEnumerator()
+        {
+            foreach (var item in _items)
+            {
+                yield return item;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
