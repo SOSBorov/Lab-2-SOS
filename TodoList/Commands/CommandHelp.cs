@@ -17,12 +17,15 @@ namespace TodoList
  profile                - показать профиль пользователя
  help                   - показать список команд
  exit                   - выход
+status                  - выбрать статус для задачи (status номер задачи и статус задачи ( NotStarted, InProgress, Completed, Postponed, Failed )
 
 Флаги для view:
  -i, --index          - показывать индекс задачи
  -s, --status         - показывать статус
  -d, --update-date    - показывать дату изменения
  -a, --all            - показывать всё
+
+
 ");
         }
     }

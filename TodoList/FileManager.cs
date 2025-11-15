@@ -51,10 +51,9 @@ namespace TodoList
         public static void SaveTodos(TodoList todos, string filePath)
         {
             var lines = new List<string> { "Index;Text;Status;LastUpdate" };
-            foreach (var item in todos)
+            foreach (var item in todos.GetAllItems())
             {
                 string textToSave = item.Text.Replace("\r", "").Replace("\n", "\\n").Replace("\"", "\"\"");
-
                 string formattedText = $"\"{textToSave}\"";
                 string statusText = item.Status.ToString();
                 string formattedDate = item.LastUpdated.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
@@ -66,7 +65,8 @@ namespace TodoList
 
         public static TodoList LoadTodos(string filePath)
         {
-            var todoList = new TodoList();
+            var loadedItems = new List<TodoItem>();
+
             if (File.Exists(filePath))
             {
                 var lines = File.ReadAllLines(filePath).Skip(1);
@@ -83,11 +83,18 @@ namespace TodoList
                             DateTime lastUpdated = DateTime.ParseExact(parts[3], "yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
 
                             TodoStatus status;
-                            if (!Enum.TryParse(statusFromFile, true, out status))
+
+                            if (statusFromFile.Equals("true", StringComparison.OrdinalIgnoreCase))
                             {
-                                status = statusFromFile.Equals("true", StringComparison.OrdinalIgnoreCase)
-                                    ? TodoStatus.Completed
-                                    : TodoStatus.NotStarted;
+                                status = TodoStatus.Completed;
+                            }
+                            else if (statusFromFile.Equals("false", StringComparison.OrdinalIgnoreCase))
+                            {
+                                status = TodoStatus.NotStarted;
+                            }
+                            else
+                            {
+                                status = Enum.Parse<TodoStatus>(statusFromFile, true);
                             }
 
                             var item = new TodoItem
@@ -98,7 +105,7 @@ namespace TodoList
                                 CreatedAt = DateTime.Now,
                                 LastUpdated = lastUpdated
                             };
-                            todoList.AddLoadedItem(item);
+                            loadedItems.Add(item);
                         }
                         catch (Exception ex)
                         {
@@ -112,7 +119,8 @@ namespace TodoList
             {
                 Console.WriteLine($"Файл задач не найден: {filePath}. Список задач пуст.");
             }
-            return todoList;
+
+            return new TodoList(loadedItems);
         }
 
         private static string[] SplitCsvLine(string line, char separator)
@@ -128,8 +136,15 @@ namespace TodoList
                     if (i + 1 < line.Length && line[i + 1] == '"') { sb.Append('"'); i++; }
                     else { inQuote = !inQuote; }
                 }
-                else if (c == separator && !inQuote) { parts.Add(sb.ToString()); sb.Clear(); }
-                else { sb.Append(c); }
+                else if (c == separator && !inQuote)
+                {
+                    parts.Add(sb.ToString());
+                    sb.Clear();
+                }
+                else
+                {
+                    sb.Append(c);
+                }
             }
             parts.Add(sb.ToString());
             return parts.ToArray();

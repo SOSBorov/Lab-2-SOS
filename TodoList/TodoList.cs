@@ -6,12 +6,24 @@ using System.Text;
 
 namespace TodoList
 {
-    public class TodoList : IEnumerable<TodoItem>
+    public class TodoList
     {
         private readonly List<TodoItem> _items = new();
         private int _nextId = 1;
 
+        public TodoList() { }
+
+        public TodoList(List<TodoItem> items)
+        {
+            _items = items;
+            if (_items.Any())
+            {
+                _nextId = _items.Max(item => item.Id) + 1;
+            }
+        }
+
         public int Count => _items.Count;
+
         public TodoItem this[int index] => _items[index];
 
         public void Add(string text)
@@ -34,48 +46,51 @@ namespace TodoList
 
         public void Remove(int id)
         {
-            var item = _items.FirstOrDefault(x => x.Id == id);
-            if (item == null)
+            int indexToRemove = _items.FindIndex(item => item.Id == id);
+
+            if (indexToRemove != -1)
+            {
+                _items.RemoveAt(indexToRemove);
+                Console.WriteLine("Задача удалена.");
+            }
+            else
             {
                 Console.WriteLine("Задача с таким ID не найдена.");
-                return;
             }
-            _items.Remove(item);
-            Console.WriteLine("Задача удалена.");
         }
 
-        /// <summary>
-        /// Устанавливает новый статус для задачи по ее ID.
-        /// </summary>
         public void SetStatus(int id, TodoStatus newStatus)
         {
-            var item = _items.FirstOrDefault(x => x.Id == id);
-            if (item == null)
+            int indexToUpdate = _items.FindIndex(item => item.Id == id);
+
+            if (indexToUpdate != -1)
+            {
+                _items[indexToUpdate].Status = newStatus;
+                _items[indexToUpdate].LastUpdated = DateTime.Now;
+                Console.WriteLine($"Статус задачи #{id} изменен на '{newStatus}'.");
+            }
+            else
             {
                 Console.WriteLine("Задача с таким ID не найдена.");
-                return;
             }
-            item.Status = newStatus;
-            item.LastUpdated = DateTime.Now;
-            Console.WriteLine($"Статус задачи #{id} изменен на '{newStatus}'.");
         }
 
         public void Update(int id, string newText)
         {
-            var item = _items.FirstOrDefault(x => x.Id == id);
-            if (item == null)
+            int indexToUpdate = _items.FindIndex(item => item.Id == id);
+
+            if (indexToUpdate != -1)
+            {
+                _items[indexToUpdate].Text = newText;
+                _items[indexToUpdate].LastUpdated = DateTime.Now;
+                Console.WriteLine("Задача обновлена.");
+            }
+            else
             {
                 Console.WriteLine("Задача не найдена.");
-                return;
             }
-            item.Text = newText;
-            item.LastUpdated = DateTime.Now;
-            Console.WriteLine("Задача обновлена.");
         }
 
-        /// <summary>
-        /// Отображает задачи с учетом флагов. Статус выводится как текст (например, (Completed)).
-        /// </summary>
         public void ViewCustom(bool showIndex, bool showStatus, bool showUpdateDate, bool showAll)
         {
             if (_items.Count == 0)
@@ -84,27 +99,13 @@ namespace TodoList
                 return;
             }
 
-            foreach (var item in this)
+            foreach (var item in _items)
             {
                 var outputBuilder = new StringBuilder();
-
-                if (showAll || showIndex)
-                {
-                    outputBuilder.Append($"[{item.Id}] ");
-                }
-
-                if (showAll || showStatus)
-                {
-                    outputBuilder.Append($"({item.Status}) ");
-                }
-
+                if (showAll || showIndex) outputBuilder.Append($"[{item.Id}] ");
+                if (showAll || showStatus) outputBuilder.Append($"({item.Status}) ");
                 outputBuilder.Append(item.Text);
-
-                if (showAll || showUpdateDate)
-                {
-                    outputBuilder.Append($" обновлено {item.LastUpdated:dd.MM.yyyy HH:mm}");
-                }
-
+                if (showAll || showUpdateDate) outputBuilder.Append($" обновлено {item.LastUpdated:dd.MM.yyyy HH:mm}");
                 Console.WriteLine(outputBuilder.ToString());
             }
         }
@@ -112,28 +113,6 @@ namespace TodoList
         public List<TodoItem> GetAllItems()
         {
             return new List<TodoItem>(_items);
-        }
-
-        public void AddLoadedItem(TodoItem item)
-        {
-            _items.Add(item);
-            if (item.Id >= _nextId)
-            {
-                _nextId = item.Id + 1;
-            }
-        }
-
-        public IEnumerator<TodoItem> GetEnumerator()
-        {
-            foreach (var item in _items)
-            {
-                yield return item;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
     }
 }
