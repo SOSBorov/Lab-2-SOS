@@ -53,7 +53,8 @@ namespace TodoList
             var lines = new List<string> { "Index;Text;Status;LastUpdate" };
             foreach (var item in todos)
             {
-                string textToSave = item.Text.Replace("\n", "\\n").Replace("\"", "\"\"");
+                string textToSave = item.Text.Replace("\r", "").Replace("\n", "\\n").Replace("\"", "\"\"");
+
                 string formattedText = $"\"{textToSave}\"";
                 string statusText = item.Status.ToString();
                 string formattedDate = item.LastUpdated.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
@@ -84,14 +85,9 @@ namespace TodoList
                             TodoStatus status;
                             if (!Enum.TryParse(statusFromFile, true, out status))
                             {
-                                if (statusFromFile.Equals("true", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    status = TodoStatus.Completed;
-                                }
-                                else
-                                {
-                                    status = TodoStatus.NotStarted;
-                                }
+                                status = statusFromFile.Equals("true", StringComparison.OrdinalIgnoreCase)
+                                    ? TodoStatus.Completed
+                                    : TodoStatus.NotStarted;
                             }
 
                             var item = new TodoItem
@@ -129,25 +125,11 @@ namespace TodoList
                 char c = line[i];
                 if (c == '"')
                 {
-                    if (i + 1 < line.Length && line[i + 1] == '"')
-                    {
-                        sb.Append('"');
-                        i++;
-                    }
-                    else
-                    {
-                        inQuote = !inQuote;
-                    }
+                    if (i + 1 < line.Length && line[i + 1] == '"') { sb.Append('"'); i++; }
+                    else { inQuote = !inQuote; }
                 }
-                else if (c == separator && !inQuote)
-                {
-                    parts.Add(sb.ToString());
-                    sb.Clear();
-                }
-                else
-                {
-                    sb.Append(c);
-                }
+                else if (c == separator && !inQuote) { parts.Add(sb.ToString()); sb.Clear(); }
+                else { sb.Append(c); }
             }
             parts.Add(sb.ToString());
             return parts.ToArray();
