@@ -37,11 +37,7 @@ namespace TodoList
                 case "view":
                     {
                         var view = new ViewCommand { TodoList = todoList };
-                        var flags = parts.Skip(1)
-                                         .Where(p => p.StartsWith("-"))
-                                         .Select(p => p.TrimStart('-'))
-                                         .ToArray();
-
+                        var flags = parts.Skip(1).Where(p => p.StartsWith("-")).Select(p => p.TrimStart('-')).ToArray();
                         foreach (var flag in flags)
                         {
                             foreach (char f in flag)
@@ -63,32 +59,33 @@ namespace TodoList
                     }
 
                 case "status":
-                {
-                    var statusCmd = new StatusCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
-                    if (parts.Length < 3)
                     {
-                        Console.WriteLine("Использование: status <номер> <новый_статус>");
-                        Console.WriteLine("Доступные статусы: NotStarted, InProgress, Completed, Postponed, Failed");
-                        return null;
+                        var statusCmd = new StatusCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
+                        if (parts.Length < 3)
+                        {
+                            Console.WriteLine("Использование: status <номер> <новый_статус>");
+                            return null;
+                        }
+                        if (int.TryParse(parts[1], out int number) && number > 0)
+                        {
+                            statusCmd.Index = number - 1;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Неверный номер задачи.");
+                            return null;
+                        }
+                        if (Enum.TryParse<TodoStatus>(parts[2], true, out TodoStatus newStatus))
+                        {
+                            statusCmd.NewStatus = newStatus;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Неверный статус.");
+                            return null;
+                        }
+                        return statusCmd;
                     }
-
-                    if (!int.TryParse(parts[1], out int id))
-                    {
-                        Console.WriteLine($"Ошибка: '{parts[1]}' не является корректным номером задачи.");
-                        return null;
-                    }
-
-                    if (!Enum.TryParse<TodoStatus>(parts[2], true, out TodoStatus newStatus))
-                    {
-                        Console.WriteLine($"Ошибка: '{parts[2]}' не является корректным статусом.");
-                        Console.WriteLine("Доступные статусы: NotStarted, InProgress, Completed, Postponed, Failed");
-                        return null;
-                    }
-
-                    statusCmd.Id = id;
-                    statusCmd.NewStatus = newStatus;
-                    return statusCmd;
-                }
 
                 case "update":
                     {
@@ -96,11 +93,18 @@ namespace TodoList
                         if (parts.Length < 3)
                         {
                             Console.WriteLine("Использование: update <номер> <новый текст>");
-                            return up;
+                            return null;
                         }
-                        if (int.TryParse(parts[1], out int id))
-                            up.Id = id;
-                        up.NewText = string.Join(' ', parts.Skip(2));
+                        if (int.TryParse(parts[1], out int number) && number > 0)
+                        {
+                            up.Index = number - 1;
+                            up.NewText = string.Join(' ', parts.Skip(2));
+                        }
+                        else
+                        {
+                            Console.WriteLine("Неверный номер задачи.");
+                            return null;
+                        }
                         return up;
                     }
 
@@ -109,10 +113,15 @@ namespace TodoList
                 case "rm":
                     {
                         var rm = new RemoveCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
-                        if (parts.Length > 1 && int.TryParse(parts[1], out int id))
-                            rm.Id = id;
+                        if (parts.Length > 1 && int.TryParse(parts[1], out int number) && number > 0)
+                        {
+                            rm.Index = number - 1;
+                        }
                         else
+                        {
                             Console.WriteLine("Использование: delete <номер>");
+                            return null;
+                        }
                         return rm;
                     }
 

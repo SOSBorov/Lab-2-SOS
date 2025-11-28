@@ -6,7 +6,7 @@ using System.Text;
 
 namespace TodoList
 {
-    public class TodoList
+    public class TodoList : IEnumerable<TodoItem>
     {
         private readonly List<TodoItem> _items = new();
         private int _nextId = 1;
@@ -23,7 +23,6 @@ namespace TodoList
         }
 
         public int Count => _items.Count;
-
         public TodoItem this[int index] => _items[index];
 
         public void Add(string text)
@@ -44,50 +43,44 @@ namespace TodoList
             Console.WriteLine("Многострочная задача добавлена.");
         }
 
-        public void Remove(int id)
+        public void Remove(int index)
         {
-            int indexToRemove = _items.FindIndex(item => item.Id == id);
-
-            if (indexToRemove != -1)
+            if (index >= 0 && index < _items.Count)
             {
-                _items.RemoveAt(indexToRemove);
+                _items.RemoveAt(index);
                 Console.WriteLine("Задача удалена.");
             }
             else
             {
-                Console.WriteLine("Задача с таким ID не найдена.");
+                Console.WriteLine("Задачи с таким номером не существует.");
             }
         }
 
-        public void SetStatus(int id, TodoStatus newStatus)
+        public void SetStatus(int index, TodoStatus newStatus)
         {
-            int indexToUpdate = _items.FindIndex(item => item.Id == id);
-
-            if (indexToUpdate != -1)
+            if (index >= 0 && index < _items.Count)
             {
-                _items[indexToUpdate].Status = newStatus;
-                _items[indexToUpdate].LastUpdated = DateTime.Now;
-                Console.WriteLine($"Статус задачи #{id} изменен на '{newStatus}'.");
+                _items[index].Status = newStatus;
+                _items[index].LastUpdated = DateTime.Now;
+                Console.WriteLine($"Статус задачи #{_items[index].Id} изменен на '{newStatus}'.");
             }
             else
             {
-                Console.WriteLine("Задача с таким ID не найдена.");
+                Console.WriteLine("Задачи с таким номером не существует.");
             }
         }
 
-        public void Update(int id, string newText)
+        public void Update(int index, string newText)
         {
-            int indexToUpdate = _items.FindIndex(item => item.Id == id);
-
-            if (indexToUpdate != -1)
+            if (index >= 0 && index < _items.Count)
             {
-                _items[indexToUpdate].Text = newText;
-                _items[indexToUpdate].LastUpdated = DateTime.Now;
+                _items[index].Text = newText;
+                _items[index].LastUpdated = DateTime.Now;
                 Console.WriteLine("Задача обновлена.");
             }
             else
             {
-                Console.WriteLine("Задача не найдена.");
+                Console.WriteLine("Задачи с таким номером не существует.");
             }
         }
 
@@ -99,12 +92,15 @@ namespace TodoList
                 return;
             }
 
-            foreach (var item in _items)
+            foreach (var item in this)
             {
                 var outputBuilder = new StringBuilder();
                 if (showAll || showIndex) outputBuilder.Append($"[{item.Id}] ");
                 if (showAll || showStatus) outputBuilder.Append($"({item.Status}) ");
-                outputBuilder.Append(item.Text);
+
+                string formattedText = item.Text.Replace("\r", "").Replace("\n", " | ");
+                outputBuilder.Append(formattedText);
+
                 if (showAll || showUpdateDate) outputBuilder.Append($" обновлено {item.LastUpdated:dd.MM.yyyy HH:mm}");
                 Console.WriteLine(outputBuilder.ToString());
             }
@@ -113,6 +109,19 @@ namespace TodoList
         public List<TodoItem> GetAllItems()
         {
             return new List<TodoItem>(_items);
+        }
+
+        public IEnumerator<TodoItem> GetEnumerator()
+        {
+            foreach (var item in _items)
+            {
+                yield return item;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
