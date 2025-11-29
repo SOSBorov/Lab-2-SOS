@@ -14,12 +14,10 @@ namespace TodoList
             if (AppInfo.Todos == null) throw new InvalidOperationException("TodoList не инициализирован");
             if (TodosFilePath == null) throw new InvalidOperationException("Путь к файлу задач не установлен");
 
-            // Многострочный ввод пока не поддерживается для Undo/Redo
             if (Multiline)
             {
                 AppInfo.Todos.ReadFromConsoleAndAddMultiline();
                 FileManager.SaveTodos(AppInfo.Todos, TodosFilePath);
-                // Не помещаем в Undo, так как сложно отменить
                 return;
             }
 
