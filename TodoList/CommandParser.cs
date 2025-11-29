@@ -2,12 +2,13 @@
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Collections.Generic;
 
 namespace TodoList
 {
     public static class CommandParser
     {
-        public static ICommand? Parse(string inputString, TodoList todoList, Profile profile)
+        public static ICommand? Parse(string inputString)
         {
             if (string.IsNullOrWhiteSpace(inputString)) return null;
 
@@ -24,7 +25,7 @@ namespace TodoList
 
                 case "add":
                     {
-                        var add = new AddCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
+                        var add = new AddCommand { TodosFilePath = FileManager.TodosFilePath };
                         if (lower.Contains("-m") || lower.Contains("--multiline"))
                         {
                             add.Multiline = true;
@@ -36,7 +37,7 @@ namespace TodoList
 
                 case "view":
                     {
-                        var view = new ViewCommand { TodoList = todoList };
+                        var view = new ViewCommand();
                         var flags = parts.Skip(1).Where(p => p.StartsWith("-")).Select(p => p.TrimStart('-')).ToArray();
                         foreach (var flag in flags)
                         {
@@ -60,51 +61,37 @@ namespace TodoList
 
                 case "status":
                     {
-                        var statusCmd = new StatusCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
+                        var statusCmd = new StatusCommand { TodosFilePath = FileManager.TodosFilePath };
                         if (parts.Length < 3)
                         {
                             Console.WriteLine("Использование: status <номер> <новый_статус>");
                             return null;
                         }
-                        if (int.TryParse(parts[1], out int number) && number > 0)
+                        if (!int.TryParse(parts[1], out int id))
                         {
-                            statusCmd.Index = number - 1;
-                        }
-                        else
-                        {
-                            Console.WriteLine("Неверный номер задачи.");
+                            Console.WriteLine($"Ошибка: '{parts[1]}' не является корректным номером задачи.");
                             return null;
                         }
-                        if (Enum.TryParse<TodoStatus>(parts[2], true, out TodoStatus newStatus))
+                        if (!Enum.TryParse<TodoStatus>(parts[2], true, out TodoStatus newStatus))
                         {
-                            statusCmd.NewStatus = newStatus;
-                        }
-                        else
-                        {
-                            Console.WriteLine("Неверный статус.");
+                            Console.WriteLine($"Ошибка: '{parts[2]}' не является корректным статусом.");
                             return null;
                         }
+                        statusCmd.Id = id;
+                        statusCmd.NewStatus = newStatus;
                         return statusCmd;
                     }
 
                 case "update":
                     {
-                        var up = new UpdateCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
+                        var up = new UpdateCommand { TodosFilePath = FileManager.TodosFilePath };
                         if (parts.Length < 3)
                         {
                             Console.WriteLine("Использование: update <номер> <новый текст>");
-                            return null;
+                            return up;
                         }
-                        if (int.TryParse(parts[1], out int number) && number > 0)
-                        {
-                            up.Index = number - 1;
-                            up.NewText = string.Join(' ', parts.Skip(2));
-                        }
-                        else
-                        {
-                            Console.WriteLine("Неверный номер задачи.");
-                            return null;
-                        }
+                        if (int.TryParse(parts[1], out int id)) up.Id = id;
+                        up.NewText = string.Join(' ', parts.Skip(2));
                         return up;
                     }
 
@@ -112,21 +99,27 @@ namespace TodoList
                 case "remove":
                 case "rm":
                     {
-                        var rm = new RemoveCommand { TodoList = todoList, TodosFilePath = FileManager.TodosFilePath };
-                        if (parts.Length > 1 && int.TryParse(parts[1], out int number) && number > 0)
-                        {
-                            rm.Index = number - 1;
-                        }
-                        else
-                        {
-                            Console.WriteLine("Использование: delete <номер>");
-                            return null;
-                        }
+                        var rm = new RemoveCommand { TodosFilePath = FileManager.TodosFilePath };
+                        if (parts.Length > 1 && int.TryParse(parts[1], out int id)) rm.Id = id;
+                        else Console.WriteLine("Использование: delete <номер>");
                         return rm;
                     }
 
                 case "profile":
-                    return new ProfileCommand { Profile = profile, ProfileFilePath = FileManager.ProfileFilePath };
+                    {
+                        var profileCmd = new ProfileCommand { ProfileFilePath = FileManager.ProfileFilePath };
+                        if (parts.Length > 1)
+                        {
+                            profileCmd.Name = string.Join(' ', parts.Skip(1));
+                        }
+                        return profileCmd;
+                    }
+
+                case "undo":
+                    return new UndoCommand();
+
+                case "redo":
+                    return new RedoCommand();
 
                 default:
                     Console.WriteLine("Неизвестная команда. Напишите 'help' для списка команд.");

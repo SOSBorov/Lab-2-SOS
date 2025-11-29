@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic; 
 using System.Globalization;
 using System.IO;
 
@@ -6,51 +7,41 @@ namespace TodoList
 {
     class Program
     {
-
         static void Main(string[] args)
         {
             Console.WriteLine("Работу выполнили Vasilevich и Garmash");
 
             FileManager.EnsureDataDirectory(FileManager.DataDirectory);
 
-            Profile profile;
-            TodoList todoList;
+            AppInfo.CurrentProfile = FileManager.LoadProfile(FileManager.ProfileFilePath);
+            AppInfo.Todos = FileManager.LoadTodos(FileManager.TodosFilePath);
+            AppInfo.UndoStack = new Stack<ICommand>();
+            AppInfo.RedoStack = new Stack<ICommand>();
 
-            profile = FileManager.LoadProfile(FileManager.ProfileFilePath);
-
-            if (profile.Name == "Default" || profile.YearOfBirth == 0)
+            if (AppInfo.CurrentProfile.Name == "Default" || AppInfo.CurrentProfile.YearOfBirth == 0)
             {
                 Console.WriteLine("Профиль не найден или поврежден. Пожалуйста, введите ваши данные.");
 
                 Console.WriteLine("Продиктуйте ваше имя и фамилию мессир: ");
-                profile.Name = Console.ReadLine();
+                AppInfo.CurrentProfile.Name = Console.ReadLine();
 
                 Console.WriteLine("Продиктуйте ваш год рождения (YYYY): ");
                 string yearInput = Console.ReadLine();
                 DateTime birthdayDate;
-                int yearOfBirth;
-
                 while (!DateTime.TryParseExact(yearInput, "yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out birthdayDate))
                 {
                     Console.WriteLine("Неверный формат года. Пожалуйста, введите год в формате YYYY:");
                     yearInput = Console.ReadLine();
                 }
-                yearOfBirth = birthdayDate.Year;
+                AppInfo.CurrentProfile.YearOfBirth = birthdayDate.Year;
 
-                profile.YearOfBirth = yearOfBirth;
-
-                DateTime currentDate = DateTime.Today;
-                int age = currentDate.Year - profile.YearOfBirth;
-
-                Console.WriteLine($" Добавлен пользователь {profile.Name}, возраст - {age}");
-                FileManager.SaveProfile(profile, FileManager.ProfileFilePath);
+                Console.WriteLine($" Добавлен пользователь {AppInfo.CurrentProfile.Name}, возраст - {DateTime.Today.Year - AppInfo.CurrentProfile.YearOfBirth}");
+                FileManager.SaveProfile(AppInfo.CurrentProfile, FileManager.ProfileFilePath);
             }
             else
             {
-                Console.WriteLine($"Добро пожаловать обратно, {profile.GetInfo()}!");
+                Console.WriteLine($"Добро пожаловать обратно, {AppInfo.CurrentProfile.GetInfo()}!");
             }
-
-            todoList = FileManager.LoadTodos(FileManager.TodosFilePath);
 
             Console.WriteLine("Напишите 'help' для списка команд или 'exit' для выхода.");
 
@@ -64,7 +55,7 @@ namespace TodoList
                 if (input.Equals("exit", StringComparison.OrdinalIgnoreCase)) break;
                 if (input.Length == 0) continue;
 
-                var command = CommandParser.Parse(input, todoList, profile);
+                var command = CommandParser.Parse(input);
                 try
                 {
                     command?.Execute();

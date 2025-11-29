@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace TodoList
 {
-    public class TodoList : IEnumerable<TodoItem>
+    public class TodoList
     {
         private readonly List<TodoItem> _items = new();
         private int _nextId = 1;
@@ -25,9 +24,20 @@ namespace TodoList
         public int Count => _items.Count;
         public TodoItem this[int index] => _items[index];
 
-        public void Add(string text)
+        public TodoItem Add(string text)
         {
-            _items.Add(new TodoItem { Id = _nextId++, Text = text });
+            var newItem = new TodoItem { Id = _nextId++, Text = text };
+            _items.Add(newItem);
+            return newItem;
+        }
+
+        internal void AddExistingItem(TodoItem item)
+        {
+            if (!_items.Any(i => i.Id == item.Id))
+            {
+                _items.Add(item);
+                _items.Sort((a, b) => a.Id.CompareTo(b.Id));
+            }
         }
 
         public void ReadFromConsoleAndAddMultiline()
@@ -43,44 +53,47 @@ namespace TodoList
             Console.WriteLine("Многострочная задача добавлена.");
         }
 
-        public void Remove(int index)
+        public void Remove(int id)
         {
-            if (index >= 0 && index < _items.Count)
+            int indexToRemove = _items.FindIndex(item => item.Id == id);
+            if (indexToRemove != -1)
             {
-                _items.RemoveAt(index);
+                _items.RemoveAt(indexToRemove);
                 Console.WriteLine("Задача удалена.");
             }
             else
             {
-                Console.WriteLine("Задачи с таким номером не существует.");
+                Console.WriteLine("Задача с таким ID не найдена.");
             }
         }
 
-        public void SetStatus(int index, TodoStatus newStatus)
+        public void SetStatus(int id, TodoStatus newStatus)
         {
-            if (index >= 0 && index < _items.Count)
+            int indexToUpdate = _items.FindIndex(item => item.Id == id);
+            if (indexToUpdate != -1)
             {
-                _items[index].Status = newStatus;
-                _items[index].LastUpdated = DateTime.Now;
-                Console.WriteLine($"Статус задачи #{_items[index].Id} изменен на '{newStatus}'.");
+                _items[indexToUpdate].Status = newStatus;
+                _items[indexToUpdate].LastUpdated = DateTime.Now;
+                Console.WriteLine($"Статус задачи #{id} изменен на '{newStatus}'.");
             }
             else
             {
-                Console.WriteLine("Задачи с таким номером не существует.");
+                Console.WriteLine("Задача с таким ID не найдена.");
             }
         }
 
-        public void Update(int index, string newText)
+        public void Update(int id, string newText)
         {
-            if (index >= 0 && index < _items.Count)
+            int indexToUpdate = _items.FindIndex(item => item.Id == id);
+            if (indexToUpdate != -1)
             {
-                _items[index].Text = newText;
-                _items[index].LastUpdated = DateTime.Now;
+                _items[indexToUpdate].Text = newText;
+                _items[indexToUpdate].LastUpdated = DateTime.Now;
                 Console.WriteLine("Задача обновлена.");
             }
             else
             {
-                Console.WriteLine("Задачи с таким номером не существует.");
+                Console.WriteLine("Задача не найдена.");
             }
         }
 
@@ -92,15 +105,12 @@ namespace TodoList
                 return;
             }
 
-            foreach (var item in this)
+            foreach (var item in _items)
             {
                 var outputBuilder = new StringBuilder();
                 if (showAll || showIndex) outputBuilder.Append($"[{item.Id}] ");
                 if (showAll || showStatus) outputBuilder.Append($"({item.Status}) ");
-
-                string formattedText = item.Text.Replace("\r", "").Replace("\n", " | ");
-                outputBuilder.Append(formattedText);
-
+                outputBuilder.Append(item.Text);
                 if (showAll || showUpdateDate) outputBuilder.Append($" обновлено {item.LastUpdated:dd.MM.yyyy HH:mm}");
                 Console.WriteLine(outputBuilder.ToString());
             }
@@ -109,19 +119,6 @@ namespace TodoList
         public List<TodoItem> GetAllItems()
         {
             return new List<TodoItem>(_items);
-        }
-
-        public IEnumerator<TodoItem> GetEnumerator()
-        {
-            foreach (var item in _items)
-            {
-                yield return item;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
     }
 }

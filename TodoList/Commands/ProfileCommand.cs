@@ -4,28 +4,37 @@ namespace TodoList
 {
     public class ProfileCommand : ICommand
     {
-        public Profile? Profile { get; set; }
         public string? Name { get; set; }
-
         public string? ProfileFilePath { get; set; }
+        private string _previousName;
 
         public void Execute()
         {
-            if (Profile == null)
-                throw new InvalidOperationException("Профиль не установлен");
-            if (ProfileFilePath == null)
-                throw new InvalidOperationException("Путь к файлу профиля не установлен");
+            if (AppInfo.CurrentProfile == null) throw new InvalidOperationException("Профиль не инициализирован");
+            if (ProfileFilePath == null) throw new InvalidOperationException("Путь к файлу профиля не установлен");
 
             if (!string.IsNullOrWhiteSpace(Name))
             {
-                Profile.Name = Name!;
-                Console.WriteLine($"Имя профиля изменено на: {Profile.Name}");
-
-                FileManager.SaveProfile(Profile, ProfileFilePath);
+                _previousName = AppInfo.CurrentProfile.Name;
+                AppInfo.CurrentProfile.Name = Name!;
+                Console.WriteLine($"Имя профиля изменено на: {AppInfo.CurrentProfile.Name}");
+                FileManager.SaveProfile(AppInfo.CurrentProfile, ProfileFilePath);
+                AppInfo.UndoStack.Push(this);
+                AppInfo.RedoStack.Clear();
             }
             else
             {
-                Console.WriteLine(Profile.GetInfo());
+                Console.WriteLine(AppInfo.CurrentProfile.GetInfo());
+            }
+        }
+
+        public void Unexecute()
+        {
+            if (_previousName != null)
+            {
+                AppInfo.CurrentProfile.Name = _previousName;
+                FileManager.SaveProfile(AppInfo.CurrentProfile, ProfileFilePath);
+                Console.WriteLine($"Имя профиля возвращено на: {AppInfo.CurrentProfile.Name}");
             }
         }
     }
