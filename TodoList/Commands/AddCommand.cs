@@ -31,8 +31,6 @@ namespace TodoList
             Console.WriteLine("Задача добавлена.");
 
             FileManager.SaveTodos(AppInfo.Todos, TodosFilePath);
-            AppInfo.UndoStack.Push(this);
-            AppInfo.RedoStack.Clear();
         }
 
         public void Unexecute()

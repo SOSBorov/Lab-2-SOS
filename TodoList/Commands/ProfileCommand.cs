@@ -19,8 +19,6 @@ namespace TodoList
                 AppInfo.CurrentProfile.Name = Name!;
                 Console.WriteLine($"Имя профиля изменено на: {AppInfo.CurrentProfile.Name}");
                 FileManager.SaveProfile(AppInfo.CurrentProfile, ProfileFilePath);
-                AppInfo.UndoStack.Push(this);
-                AppInfo.RedoStack.Clear();
             }
             else
             {

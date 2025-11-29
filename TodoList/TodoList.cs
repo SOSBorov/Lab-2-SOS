@@ -120,5 +120,10 @@ namespace TodoList
         {
             return new List<TodoItem>(_items);
         }
+
+        public TodoItem? GetById(int id)
+        {
+            return _items.FirstOrDefault(item => item.Id == id);
+        }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic; 
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
@@ -56,13 +56,21 @@ namespace TodoList
                 if (input.Length == 0) continue;
 
                 var command = CommandParser.Parse(input);
-                try
+                if (command != null)
                 {
-                    command?.Execute();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Ошибка: {ex.Message}");
+                    try
+                    {
+                        command.Execute();
+                        if (command is not (ViewCommand or HelpCommand or UndoCommand or RedoCommand))
+                        {
+                            AppInfo.UndoStack.Push(command);
+                            AppInfo.RedoStack.Clear();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Ошибка: {ex.Message}");
+                    }
                 }
             }
 

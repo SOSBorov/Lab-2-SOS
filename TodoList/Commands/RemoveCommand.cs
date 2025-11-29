@@ -14,14 +14,12 @@ namespace TodoList
             if (AppInfo.Todos == null) throw new InvalidOperationException("TodoList не инициализирован");
             if (TodosFilePath == null) throw new InvalidOperationException("Путь к файлу задач не установлен");
 
-            _removedItem = AppInfo.Todos.GetAllItems().FirstOrDefault(x => x.Id == Id);
+            _removedItem = AppInfo.Todos.GetById(Id);
 
             if (_removedItem != null)
             {
                 AppInfo.Todos.Remove(Id);
                 FileManager.SaveTodos(AppInfo.Todos, TodosFilePath);
-                AppInfo.UndoStack.Push(this);
-                AppInfo.RedoStack.Clear();
             }
         }
 

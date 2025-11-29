@@ -15,15 +15,13 @@ namespace TodoList
             if (AppInfo.Todos == null) throw new InvalidOperationException("TodoList не инициализирован");
             if (TodosFilePath == null) throw new InvalidOperationException("Путь к файлу задач не установлен");
 
-            var itemToUpdate = AppInfo.Todos.GetAllItems().FirstOrDefault(x => x.Id == Id);
+            var itemToUpdate = AppInfo.Todos.GetById(Id);
 
             if (itemToUpdate != null)
             {
                 _previousStatus = itemToUpdate.Status;
                 AppInfo.Todos.SetStatus(Id, NewStatus);
                 FileManager.SaveTodos(AppInfo.Todos, TodosFilePath);
-                AppInfo.UndoStack.Push(this);
-                AppInfo.RedoStack.Clear();
             }
         }
 
