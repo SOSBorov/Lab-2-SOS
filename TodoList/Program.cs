@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 
 namespace TodoList
 {
@@ -12,37 +13,34 @@ namespace TodoList
             Console.WriteLine("Работу выполнили Vasilevich и Garmash");
 
             FileManager.EnsureDataDirectory(FileManager.DataDirectory);
+            AppInfo.AllProfiles = FileManager.LoadProfiles(FileManager.ProfileFilePath);
 
-            AppInfo.CurrentProfile = FileManager.LoadProfile(FileManager.ProfileFilePath);
-            AppInfo.Todos = FileManager.LoadTodos(FileManager.TodosFilePath);
+            while (AppInfo.CurrentProfile == null)
+            {
+                Console.Write("Войти в существующий профиль? [y/n]: ");
+                string choice = Console.ReadLine()?.ToLower();
+
+                if (choice == "y")
+                {
+                    HandleLogin();
+                }
+                else if (choice == "n")
+                {
+                    HandleRegistration();
+                }
+                else
+                {
+                    Console.WriteLine("Неверный ввод. Пожалуйста, выберите 'y' или 'n'.");
+                }
+            }
+
+            AppInfo.CurrentUserTodosFilePath = Path.Combine(FileManager.DataDirectory, $"{AppInfo.CurrentProfile.Id}.csv");
+            AppInfo.Todos = FileManager.LoadTodos(AppInfo.CurrentUserTodosFilePath);
+
             AppInfo.UndoStack = new Stack<ICommand>();
             AppInfo.RedoStack = new Stack<ICommand>();
 
-            if (AppInfo.CurrentProfile.Name == "Default" || AppInfo.CurrentProfile.YearOfBirth == 0)
-            {
-                Console.WriteLine("Профиль не найден или поврежден. Пожалуйста, введите ваши данные.");
-
-                Console.WriteLine("Продиктуйте ваше имя и фамилию мессир: ");
-                AppInfo.CurrentProfile.Name = Console.ReadLine();
-
-                Console.WriteLine("Продиктуйте ваш год рождения (YYYY): ");
-                string yearInput = Console.ReadLine();
-                DateTime birthdayDate;
-                while (!DateTime.TryParseExact(yearInput, "yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out birthdayDate))
-                {
-                    Console.WriteLine("Неверный формат года. Пожалуйста, введите год в формате YYYY:");
-                    yearInput = Console.ReadLine();
-                }
-                AppInfo.CurrentProfile.YearOfBirth = birthdayDate.Year;
-
-                Console.WriteLine($" Добавлен пользователь {AppInfo.CurrentProfile.Name}, возраст - {DateTime.Today.Year - AppInfo.CurrentProfile.YearOfBirth}");
-                FileManager.SaveProfile(AppInfo.CurrentProfile, FileManager.ProfileFilePath);
-            }
-            else
-            {
-                Console.WriteLine($"Добро пожаловать обратно, {AppInfo.CurrentProfile.GetInfo()}!");
-            }
-
+            Console.WriteLine($"Добро пожаловать, {AppInfo.CurrentProfile.GetInfo()}!");
             Console.WriteLine("Напишите 'help' для списка команд или 'exit' для выхода.");
 
             while (true)
@@ -75,6 +73,73 @@ namespace TodoList
             }
 
             Console.WriteLine("\nСпасибо за использование приложения. До свидания!");
+        }
+
+        private static void HandleLogin()
+        {
+            Console.Write("Введите логин: ");
+            string login = Console.ReadLine();
+            Console.Write("Введите пароль: ");
+            string password = Console.ReadLine();
+
+            var profile = AppInfo.AllProfiles.FirstOrDefault(p => p.Login.Equals(login) && p.Password.Equals(password));
+
+            if (profile != null)
+            {
+                AppInfo.CurrentProfile = profile;
+            }
+            else
+            {
+                Console.WriteLine("Неверный логин или пароль.");
+            }
+        }
+
+        private static void HandleRegistration()
+        {
+            string login;
+            while (true)
+            {
+                Console.Write("Введите новый логин: ");
+                login = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(login))
+                {
+                    Console.WriteLine("Логин не может быть пустым.");
+                    continue;
+                }
+                if (AppInfo.AllProfiles.Any(p => p.Login.Equals(login)))
+                {
+                    Console.WriteLine("Этот логин уже занят. Пожалуйста, выберите другой.");
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            Console.Write("Введите пароль: ");
+            string password = Console.ReadLine();
+            Console.Write("Введите ваше имя: ");
+            string firstName = Console.ReadLine();
+            Console.Write("Введите вашу фамилию: ");
+            string lastName = Console.ReadLine();
+
+            int birthYear;
+            while (true)
+            {
+                Console.Write("Введите год рождения (YYYY): ");
+                if (int.TryParse(Console.ReadLine(), out birthYear) && birthYear > 1900 && birthYear <= DateTime.Now.Year)
+                {
+                    break;
+                }
+                Console.WriteLine("Неверный формат года. Пожалуйста, введите год в формате YYYY.");
+            }
+
+            var newProfile = new Profile(login, password, firstName, lastName, birthYear);
+            AppInfo.AllProfiles.Add(newProfile);
+            FileManager.SaveProfiles(AppInfo.AllProfiles, FileManager.ProfileFilePath);
+
+            AppInfo.CurrentProfile = newProfile;
+            Console.WriteLine("Новый профиль успешно создан.");
         }
     }
 }

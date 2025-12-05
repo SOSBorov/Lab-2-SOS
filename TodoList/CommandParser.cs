@@ -1,3 +1,4 @@
+﻿using System.Text;
 ﻿using System;
 using System.Linq;
 using System.Text;
@@ -25,7 +26,7 @@ namespace TodoList
 
                 case "add":
                     {
-                        var add = new AddCommand { TodosFilePath = FileManager.TodosFilePath };
+                        var add = new AddCommand { TodosFilePath = AppInfo.CurrentUserTodosFilePath };
                         if (lower.Contains("-m") || lower.Contains("--multiline"))
                         {
                             add.Multiline = true;
@@ -61,7 +62,7 @@ namespace TodoList
 
                 case "status":
                     {
-                        var statusCmd = new StatusCommand { TodosFilePath = FileManager.TodosFilePath };
+                        var statusCmd = new StatusCommand { TodosFilePath = AppInfo.CurrentUserTodosFilePath };
                         if (parts.Length < 3)
                         {
                             Console.WriteLine("Использование: status <номер> <новый_статус>");
@@ -84,7 +85,7 @@ namespace TodoList
 
                 case "update":
                     {
-                        var up = new UpdateCommand { TodosFilePath = FileManager.TodosFilePath };
+                        var up = new UpdateCommand { TodosFilePath = AppInfo.CurrentUserTodosFilePath };
                         if (parts.Length < 3)
                         {
                             Console.WriteLine("Использование: update <номер> <новый текст>");
@@ -99,7 +100,7 @@ namespace TodoList
                 case "remove":
                 case "rm":
                     {
-                        var rm = new RemoveCommand { TodosFilePath = FileManager.TodosFilePath };
+                        var rm = new RemoveCommand { TodosFilePath = AppInfo.CurrentUserTodosFilePath };
                         if (parts.Length > 1 && int.TryParse(parts[1], out int id)) rm.Id = id;
                         else Console.WriteLine("Использование: delete <номер>");
                         return rm;
@@ -110,7 +111,7 @@ namespace TodoList
                         var profileCmd = new ProfileCommand { ProfileFilePath = FileManager.ProfileFilePath };
                         if (parts.Length > 1)
                         {
-                            profileCmd.Name = string.Join(' ', parts.Skip(1));
+
                         }
                         return profileCmd;
                     }

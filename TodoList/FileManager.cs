@@ -13,7 +13,6 @@ namespace TodoList
     {
         public static readonly string DataDirectory = "Data";
         public static readonly string ProfileFilePath = Path.Combine(DataDirectory, "profile.csv");
-        public static readonly string TodosFilePath = Path.Combine(DataDirectory, "todo.csv");
 
         public static void EnsureDataDirectory(string dirPath)
         {
@@ -40,17 +39,15 @@ namespace TodoList
             var profiles = new List<Profile>();
             if (!File.Exists(filePath))
             {
-                // Если файл не существует, создаем его с заголовком
                 File.WriteAllText(filePath, "Id;Login;Password;FirstName;LastName;BirthYear\n", Encoding.UTF8);
                 Console.WriteLine($"Файл профилей не найден: {filePath}. Создан новый файл.");
                 return profiles;
             }
 
-            var lines = File.ReadAllLines(filePath, Encoding.UTF8).Skip(1); // Пропускаем заголовок
+            var lines = File.ReadAllLines(filePath, Encoding.UTF8).Skip(1);
             foreach (var line in lines)
             {
                 if (string.IsNullOrWhiteSpace(line)) continue;
-
                 var parts = line.Split(';');
                 if (parts.Length == 6)
                 {
@@ -112,19 +109,9 @@ namespace TodoList
                             DateTime lastUpdated = DateTime.ParseExact(parts[3], "yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
 
                             TodoStatus status;
-
-                            if (statusFromFile.Equals("true", StringComparison.OrdinalIgnoreCase))
-                            {
-                                status = TodoStatus.Completed;
-                            }
-                            else if (statusFromFile.Equals("false", StringComparison.OrdinalIgnoreCase))
-                            {
-                                status = TodoStatus.NotStarted;
-                            }
-                            else
-                            {
-                                status = Enum.Parse<TodoStatus>(statusFromFile, true);
-                            }
+                            if (statusFromFile.Equals("true", StringComparison.OrdinalIgnoreCase)) status = TodoStatus.Completed;
+                            else if (statusFromFile.Equals("false", StringComparison.OrdinalIgnoreCase)) status = TodoStatus.NotStarted;
+                            else status = Enum.Parse<TodoStatus>(statusFromFile, true);
 
                             var item = new TodoItem
                             {
