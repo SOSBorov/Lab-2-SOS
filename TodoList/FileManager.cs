@@ -1,3 +1,5 @@
+﻿using System.Globalization;
+using System.Text;
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,7 +12,7 @@ namespace TodoList
     public static class FileManager
     {
         public static readonly string DataDirectory = "Data";
-        public static readonly string ProfileFilePath = Path.Combine(DataDirectory, "profile.txt");
+        public static readonly string ProfileFilePath = Path.Combine(DataDirectory, "profile.csv");
         public static readonly string TodosFilePath = Path.Combine(DataDirectory, "todo.csv");
 
         public static void EnsureDataDirectory(string dirPath)
@@ -22,30 +24,57 @@ namespace TodoList
             }
         }
 
-        public static void SaveProfile(Profile profile, string filePath)
+        public static void SaveProfiles(List<Profile> profiles, string filePath)
         {
-            string content = $"{profile.Name}\n{profile.YearOfBirth}";
-            File.WriteAllText(filePath, content);
-            Console.WriteLine($"Профиль сохранен в: {filePath}");
+            var lines = new List<string> { "Id;Login;Password;FirstName;LastName;BirthYear" };
+            foreach (var profile in profiles)
+            {
+                lines.Add($"{profile.Id};{profile.Login};{profile.Password};{profile.FirstName};{profile.LastName};{profile.BirthYear}");
+            }
+            File.WriteAllLines(filePath, lines, Encoding.UTF8);
+            Console.WriteLine($"Профили сохранены в: {filePath}");
         }
 
-        public static Profile LoadProfile(string filePath)
+        public static List<Profile> LoadProfiles(string filePath)
         {
-            if (File.Exists(filePath))
+            var profiles = new List<Profile>();
+            if (!File.Exists(filePath))
             {
-                string[] lines = File.ReadAllLines(filePath);
-                if (lines.Length >= 2)
+                // Если файл не существует, создаем его с заголовком
+                File.WriteAllText(filePath, "Id;Login;Password;FirstName;LastName;BirthYear\n", Encoding.UTF8);
+                Console.WriteLine($"Файл профилей не найден: {filePath}. Создан новый файл.");
+                return profiles;
+            }
+
+            var lines = File.ReadAllLines(filePath, Encoding.UTF8).Skip(1); // Пропускаем заголовок
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                var parts = line.Split(';');
+                if (parts.Length == 6)
                 {
-                    string name = lines[0];
-                    if (int.TryParse(lines[1], out int yearOfBirth))
+                    try
                     {
-                        Console.WriteLine($"Профиль загружен из: {filePath}");
-                        return new Profile(name, yearOfBirth);
+                        var profile = new Profile
+                        {
+                            Id = Guid.Parse(parts[0]),
+                            Login = parts[1],
+                            Password = parts[2],
+                            FirstName = parts[3],
+                            LastName = parts[4],
+                            BirthYear = int.Parse(parts[5])
+                        };
+                        profiles.Add(profile);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Ошибка при загрузке профиля из строки: '{line}'. {ex.Message}");
                     }
                 }
             }
-            Console.WriteLine($"Файл профиля не найден или поврежден: {filePath}. Создан профиль по умолчанию.");
-            return new Profile();
+            Console.WriteLine($"Загружено {profiles.Count} профилей из: {filePath}");
+            return profiles;
         }
 
         public static void SaveTodos(TodoList todos, string filePath)
@@ -59,7 +88,7 @@ namespace TodoList
                 string formattedDate = item.LastUpdated.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
                 lines.Add($"{item.Id};{formattedText};{statusText};{formattedDate}");
             }
-            File.WriteAllLines(filePath, lines);
+            File.WriteAllLines(filePath, lines, Encoding.UTF8);
             Console.WriteLine($"Задачи сохранены в: {filePath}");
         }
 
@@ -69,7 +98,7 @@ namespace TodoList
 
             if (File.Exists(filePath))
             {
-                var lines = File.ReadAllLines(filePath).Skip(1);
+                var lines = File.ReadAllLines(filePath, Encoding.UTF8).Skip(1);
                 foreach (var line in lines)
                 {
                     var parts = SplitCsvLine(line, ';');
