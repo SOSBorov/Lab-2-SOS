@@ -1,11 +1,10 @@
-﻿using System.Globalization;
-using System.Text;
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TodoList
 {
@@ -48,6 +47,7 @@ namespace TodoList
             foreach (var line in lines)
             {
                 if (string.IsNullOrWhiteSpace(line)) continue;
+
                 var parts = line.Split(';');
                 if (parts.Length == 6)
                 {
@@ -133,7 +133,7 @@ namespace TodoList
             }
             else
             {
-                Console.WriteLine($"Файл задач не найден: {filePath}. Список задач пуст.");
+                Console.WriteLine($"Файл задач не найден: {filePath}. Будет создан новый список задач.");
             }
 
             return new TodoList(loadedItems);

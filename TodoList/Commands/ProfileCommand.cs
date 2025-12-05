@@ -8,17 +8,26 @@ namespace TodoList
         public string? ProfileFilePath { get; set; }
         private string _previousName;
 
+
+        public bool IsLogout { get; set; }
+
         public void Execute()
         {
+            if (IsLogout)
+            {
+                Console.WriteLine($"Пользователь {AppInfo.CurrentProfile.Login} вышел из системы.");
+                AppInfo.CurrentProfile = null; 
+                return;
+            }
+
             if (AppInfo.CurrentProfile == null) throw new InvalidOperationException("Профиль не инициализирован");
             if (ProfileFilePath == null) throw new InvalidOperationException("Путь к файлу профиля не установлен");
 
             if (!string.IsNullOrWhiteSpace(Name))
             {
-                _previousName = AppInfo.CurrentProfile.Name;
-                AppInfo.CurrentProfile.Name = Name!;
-                Console.WriteLine($"Имя профиля изменено на: {AppInfo.CurrentProfile.Name}");
-                FileManager.SaveProfile(AppInfo.CurrentProfile, ProfileFilePath);
+                _previousName = AppInfo.CurrentProfile.FirstName;
+                Console.WriteLine($"Имя профиля изменено на: {AppInfo.CurrentProfile.FirstName}");
+               
             }
             else
             {
@@ -28,11 +37,12 @@ namespace TodoList
 
         public void Unexecute()
         {
+            if (IsLogout) return;
+
             if (_previousName != null)
             {
-                AppInfo.CurrentProfile.Name = _previousName;
-                FileManager.SaveProfile(AppInfo.CurrentProfile, ProfileFilePath);
-                Console.WriteLine($"Имя профиля возвращено на: {AppInfo.CurrentProfile.Name}");
+  
+                Console.WriteLine($"Имя профиля возвращено на: {AppInfo.CurrentProfile.FirstName}");
             }
         }
     }

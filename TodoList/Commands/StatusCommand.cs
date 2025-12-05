@@ -12,23 +12,23 @@ namespace TodoList
 
         public void Execute()
         {
-            if (AppInfo.Todos == null) throw new InvalidOperationException("TodoList не инициализирован");
+            if (AppInfo.CurrentUserTodoList == null) throw new InvalidOperationException("TodoList не инициализирован для текущего пользователя");
             if (TodosFilePath == null) throw new InvalidOperationException("Путь к файлу задач не установлен");
 
-            var itemToUpdate = AppInfo.Todos.GetById(Id);
+            var itemToUpdate = AppInfo.CurrentUserTodoList.GetById(Id);
 
             if (itemToUpdate != null)
             {
                 _previousStatus = itemToUpdate.Status;
-                AppInfo.Todos.SetStatus(Id, NewStatus);
-                FileManager.SaveTodos(AppInfo.Todos, TodosFilePath);
+                AppInfo.CurrentUserTodoList.SetStatus(Id, NewStatus);
+                FileManager.SaveTodos(AppInfo.CurrentUserTodoList, TodosFilePath);
             }
         }
 
         public void Unexecute()
         {
-            AppInfo.Todos.SetStatus(Id, _previousStatus);
-            FileManager.SaveTodos(AppInfo.Todos, TodosFilePath);
+            AppInfo.CurrentUserTodoList.SetStatus(Id, _previousStatus);
+            FileManager.SaveTodos(AppInfo.CurrentUserTodoList, TodosFilePath);
         }
     }
 }

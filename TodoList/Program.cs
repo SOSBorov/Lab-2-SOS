@@ -14,6 +14,7 @@ namespace TodoList
 
             FileManager.EnsureDataDirectory(FileManager.DataDirectory);
             AppInfo.AllProfiles = FileManager.LoadProfiles(FileManager.ProfileFilePath);
+            AppInfo.UserTodos = new Dictionary<Guid, TodoList>(); 
 
             while (AppInfo.CurrentProfile == null)
             {
@@ -34,8 +35,9 @@ namespace TodoList
                 }
             }
 
-            AppInfo.CurrentUserTodosFilePath = Path.Combine(FileManager.DataDirectory, $"{AppInfo.CurrentProfile.Id}.csv");
-            AppInfo.Todos = FileManager.LoadTodos(AppInfo.CurrentUserTodosFilePath);
+            AppInfo.CurrentUserTodosFilePath = Path.Combine(FileManager.DataDirectory, $"todos_{AppInfo.CurrentProfile.Id}.csv");
+            var currentUserTodos = FileManager.LoadTodos(AppInfo.CurrentUserTodosFilePath);
+            AppInfo.UserTodos[AppInfo.CurrentProfile.Id] = currentUserTodos;
 
             AppInfo.UndoStack = new Stack<ICommand>();
             AppInfo.RedoStack = new Stack<ICommand>();

@@ -11,13 +11,13 @@ namespace TodoList
 
         public void Execute()
         {
-            if (AppInfo.Todos == null)
+            if (AppInfo.CurrentUserTodoList == null)
             {
                 Console.WriteLine("Список задач не найден.");
                 return;
             }
 
-            AppInfo.Todos.ViewCustom(ShowIndex, ShowStatus, ShowUpdateDate, ShowAll);
+            AppInfo.CurrentUserTodoList.ViewCustom(ShowIndex, ShowStatus, ShowUpdateDate, ShowAll);
         }
 
         public void Unexecute() { }

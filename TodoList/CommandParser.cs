@@ -1,5 +1,5 @@
 ﻿using System.Text;
-﻿using System;
+using System;
 using System.Linq;
 using System.Text;
 using System.IO;
@@ -109,9 +109,11 @@ namespace TodoList
                 case "profile":
                     {
                         var profileCmd = new ProfileCommand { ProfileFilePath = FileManager.ProfileFilePath };
-                        if (parts.Length > 1)
-                        {
+                        var flags = parts.Skip(1).ToArray();
 
+                        if (flags.Contains("-o") || flags.Contains("--out"))
+                        {
+                            profileCmd.IsLogout = true;
                         }
                         return profileCmd;
                     }
