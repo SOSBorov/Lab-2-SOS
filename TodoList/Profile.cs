@@ -1,30 +1,37 @@
-﻿using System; 
+﻿using System;
 using System.Globalization;
 
 namespace TodoList
 {
     public class Profile
     {
-        public string Name { get; set; } = "Default";
-        public int YearOfBirth { get; set; } 
+        public Guid Id { get; set; }
+        public string Login { get; set; }
+        public string Password { get; set; }
+        public string FirstName { get; set; } = "Default";
+        public string LastName { get; set; }
+        public int BirthYear { get; set; }
 
-        public Profile() { }
-
-        public Profile(string name, int yearOfBirth) 
+        public Profile()
         {
-            Name = name;
-            YearOfBirth = yearOfBirth;
+            Id = Guid.NewGuid();
         }
 
-        public Profile(string name) : this(name, DateTime.Now.Year) 
+        public Profile(string login, string password, string firstName, string lastName, int birthYear)
         {
+            Id = Guid.NewGuid();
+            Login = login;
+            Password = password;
+            FirstName = firstName;
+            LastName = lastName;
+            BirthYear = birthYear;
         }
 
         public string GetInfo()
         {
             DateTime currentDate = DateTime.Today;
-            int age = currentDate.Year - YearOfBirth;
-            return $"Пользователь: {Name}, Возраст: {age} лет"; 
+            int age = currentDate.Year - BirthYear;
+            return $"Пользователь: {FirstName} {LastName}, Возраст: {age} лет";
         }
     }
 }
