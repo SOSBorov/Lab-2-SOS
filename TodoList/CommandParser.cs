@@ -108,12 +108,16 @@ namespace TodoList
 
                 case "profile":
                     {
-                        var profileCmd = new ProfileCommand { ProfileFilePath = FileManager.ProfileFilePath };
-                        var flags = parts.Skip(1).ToArray();
+                        var profileCmd = new ProfileCommand();
+                        var flags = parts.Skip(1).Select(p => p.ToLowerInvariant()).ToArray();
 
                         if (flags.Contains("-o") || flags.Contains("--out"))
                         {
                             profileCmd.IsLogout = true;
+                        }
+                        else if (flags.Contains("-s") || flags.Contains("--switch"))
+                        {
+                            profileCmd.IsSwitching = true;
                         }
                         return profileCmd;
                     }

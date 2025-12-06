@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -14,67 +15,75 @@ namespace TodoList
 
             FileManager.EnsureDataDirectory(FileManager.DataDirectory);
             AppInfo.AllProfiles = FileManager.LoadProfiles(FileManager.ProfileFilePath);
-            AppInfo.UserTodos = new Dictionary<Guid, TodoList>(); 
-
-            while (AppInfo.CurrentProfile == null)
-            {
-                Console.Write("Войти в существующий профиль? [y/n]: ");
-                string choice = Console.ReadLine()?.ToLower();
-
-                if (choice == "y")
-                {
-                    HandleLogin();
-                }
-                else if (choice == "n")
-                {
-                    HandleRegistration();
-                }
-                else
-                {
-                    Console.WriteLine("Неверный ввод. Пожалуйста, выберите 'y' или 'n'.");
-                }
-            }
-
-            AppInfo.CurrentUserTodosFilePath = Path.Combine(FileManager.DataDirectory, $"todos_{AppInfo.CurrentProfile.Id}.csv");
-            var currentUserTodos = FileManager.LoadTodos(AppInfo.CurrentUserTodosFilePath);
-            AppInfo.UserTodos[AppInfo.CurrentProfile.Id] = currentUserTodos;
-
-            AppInfo.UndoStack = new Stack<ICommand>();
-            AppInfo.RedoStack = new Stack<ICommand>();
-
-            Console.WriteLine($"Добро пожаловать, {AppInfo.CurrentProfile.GetInfo()}!");
-            Console.WriteLine("Напишите 'help' для списка команд или 'exit' для выхода.");
+            AppInfo.UserTodos = new Dictionary<Guid, TodoList>();
 
             while (true)
             {
-                Console.Write("> ");
-                var input = Console.ReadLine();
-                if (input == null) break;
 
-                input = input.Trim();
-                if (input.Equals("exit", StringComparison.OrdinalIgnoreCase)) break;
-                if (input.Length == 0) continue;
-
-                var command = CommandParser.Parse(input);
-                if (command != null)
+                while (AppInfo.CurrentProfile == null)
                 {
-                    try
+                    Console.Write("Войти в существующий профиль [y], создать новый [n] или выйти [exit]?: ");
+                    string choice = Console.ReadLine()?.ToLower();
+
+                    if (choice == "y") HandleLogin();
+                    else if (choice == "n") HandleRegistration();
+                    else if (choice == "exit")
                     {
-                        command.Execute();
-                        if (command is not (ViewCommand or HelpCommand or UndoCommand or RedoCommand))
-                        {
-                            AppInfo.UndoStack.Push(command);
-                            AppInfo.RedoStack.Clear();
-                        }
+                        Console.WriteLine("\nСпасибо за использование приложения. До свидания!");
+                        return;
                     }
-                    catch (Exception ex)
+                    else Console.WriteLine("Неверный ввод.");
+                }
+
+                AppInfo.CurrentUserTodosFilePath = Path.Combine(FileManager.DataDirectory, $"todos_{AppInfo.CurrentProfile.Id}.csv");
+                var currentUserTodos = FileManager.LoadTodos(AppInfo.CurrentUserTodosFilePath);
+                AppInfo.UserTodos[AppInfo.CurrentProfile.Id] = currentUserTodos;
+
+                AppInfo.UndoStack = new Stack<ICommand>();
+                AppInfo.RedoStack = new Stack<ICommand>();
+
+                Console.WriteLine($"\nДобро пожаловать, {AppInfo.CurrentProfile.GetInfo()}!");
+                Console.WriteLine("Напишите 'help' для списка команд или 'exit' для выхода.");
+
+                while (true)
+                {
+                    if (AppInfo.CurrentProfile == null)
                     {
-                        Console.WriteLine($"Ошибка: {ex.Message}");
+                        Console.WriteLine("\nВы вышли из профиля или переключаетесь. Выберите действие:");
+                        break;
+                    }
+
+                    Console.Write("> ");
+                    var input = Console.ReadLine();
+                    if (input == null) continue;
+
+                    input = input.Trim();
+                    if (input.Equals("exit", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("\nСпасибо за использование приложения. До свидания!");
+                        return;
+                    }
+                    if (input.Length == 0) continue;
+
+                    var command = CommandParser.Parse(input);
+                    if (command != null)
+                    {
+                        try
+                        {
+                            command.Execute();
+                            if (command is AddCommand or RemoveCommand or UpdateCommand or StatusCommand)
+                            {
+                                AppInfo.UndoStack.Push(command);
+                                AppInfo.RedoStack.Clear();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Ошибка: {ex.Message}");
+                        }
                     }
                 }
             }
-
-            Console.WriteLine("\nСпасибо за использование приложения. До свидания!");
         }
 
         private static void HandleLogin()

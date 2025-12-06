@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Text;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -107,13 +108,63 @@ namespace TodoList
 
             foreach (var item in _items)
             {
-                var outputBuilder = new StringBuilder();
-                if (showAll || showIndex) outputBuilder.Append($"[{item.Id}] ");
-                if (showAll || showStatus) outputBuilder.Append($"({item.Status}) ");
-                outputBuilder.Append(item.Text);
-                if (showAll || showUpdateDate) outputBuilder.Append($" обновлено {item.LastUpdated:dd.MM.yyyy HH:mm}");
-                Console.WriteLine(outputBuilder.ToString());
+                var prefixBuilder = new StringBuilder();
+                if (showAll || showIndex) prefixBuilder.Append($"[{item.Id}] ");
+                if (showAll || showStatus) prefixBuilder.Append($"({item.Status}) ");
+                string prefix = prefixBuilder.ToString();
+
+                int availableWidth = Console.WindowWidth - prefix.Length - 1;
+                if (availableWidth < 10) availableWidth = 10;
+                string padding = new string(' ', prefix.Length);
+                string textToDisplay = WrapText(item.Text, availableWidth, padding);
+
+                Console.Write(prefix);
+                Console.Write(textToDisplay);
+
+                if (showAll || showUpdateDate) Console.Write($" (обновлено {item.LastUpdated:dd.MM.yyyy HH:mm})");
+
+                Console.WriteLine();
             }
+        }
+
+        private string WrapText(string text, int maxWidth, string padding)
+        {
+            if (string.IsNullOrEmpty(text)) return string.Empty;
+
+            var resultBuilder = new StringBuilder();
+            string[] lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i].TrimEnd();
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    if (resultBuilder.Length > 0) resultBuilder.AppendLine();
+                    if (i < lines.Length - 1) resultBuilder.Append(padding);
+                    continue;
+                }
+
+                var words = line.Split(' ');
+                var currentLine = new StringBuilder();
+
+                foreach (var word in words)
+                {
+                    if (currentLine.Length > 0 && currentLine.Length + word.Length + 1 > maxWidth)
+                    {
+                        resultBuilder.AppendLine(currentLine.ToString().TrimEnd());
+                        currentLine.Clear().Append(padding);
+                    }
+                    currentLine.Append(word + " ");
+                }
+                resultBuilder.Append(currentLine.ToString().TrimEnd());
+
+                if (i < lines.Length - 1)
+                {
+                    resultBuilder.AppendLine();
+                    resultBuilder.Append(padding);
+                }
+            }
+            return resultBuilder.ToString();
         }
 
         public List<TodoItem> GetAllItems()

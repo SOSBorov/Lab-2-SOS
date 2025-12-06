@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Windows.Input;
+using System;
 
 namespace TodoList
 {
@@ -16,7 +17,7 @@ namespace TodoList
  undo                   - отменить последнее действие
  redo                   - повторить последнее отмененное действие
  view [флаги]           - показать задачи
- profile [имя]          - показать/изменить профиль
+ profile                - показать информацию о текущем профиле
  help                   - показать список команд
  exit                   - выход
 

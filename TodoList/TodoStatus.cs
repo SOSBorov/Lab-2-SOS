@@ -2,10 +2,10 @@
 {
     public enum TodoStatus
     {
-        NotStarted, 
-        InProgress, 
-        Completed,  
-        Postponed,  
-        Failed     
+        NotStarted,
+        InProgress,
+        Completed,
+        Postponed,
+        Failed
     }
 }

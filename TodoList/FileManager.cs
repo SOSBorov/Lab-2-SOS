@@ -1,10 +1,11 @@
-﻿using System;
+﻿using System.Globalization;
+using System.Text;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TodoList
 {
@@ -18,7 +19,6 @@ namespace TodoList
             if (!Directory.Exists(dirPath))
             {
                 Directory.CreateDirectory(dirPath);
-                Console.WriteLine($"Создана директория: {dirPath}");
             }
         }
 
@@ -47,7 +47,6 @@ namespace TodoList
             foreach (var line in lines)
             {
                 if (string.IsNullOrWhiteSpace(line)) continue;
-
                 var parts = line.Split(';');
                 if (parts.Length == 6)
                 {
@@ -86,13 +85,11 @@ namespace TodoList
                 lines.Add($"{item.Id};{formattedText};{statusText};{formattedDate}");
             }
             File.WriteAllLines(filePath, lines, Encoding.UTF8);
-            Console.WriteLine($"Задачи сохранены в: {filePath}");
         }
 
         public static TodoList LoadTodos(string filePath)
         {
             var loadedItems = new List<TodoItem>();
-
             if (File.Exists(filePath))
             {
                 var lines = File.ReadAllLines(filePath, Encoding.UTF8).Skip(1);
@@ -107,12 +104,7 @@ namespace TodoList
                             string text = parts[1].Replace("\"\"", "\"").Replace("\\n", "\n");
                             string statusFromFile = parts[2];
                             DateTime lastUpdated = DateTime.ParseExact(parts[3], "yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
-
-                            TodoStatus status;
-                            if (statusFromFile.Equals("true", StringComparison.OrdinalIgnoreCase)) status = TodoStatus.Completed;
-                            else if (statusFromFile.Equals("false", StringComparison.OrdinalIgnoreCase)) status = TodoStatus.NotStarted;
-                            else status = Enum.Parse<TodoStatus>(statusFromFile, true);
-
+                            TodoStatus status = Enum.Parse<TodoStatus>(statusFromFile, true);
                             var item = new TodoItem
                             {
                                 Id = id,
@@ -135,7 +127,6 @@ namespace TodoList
             {
                 Console.WriteLine($"Файл задач не найден: {filePath}. Будет создан новый список задач.");
             }
-
             return new TodoList(loadedItems);
         }
 
