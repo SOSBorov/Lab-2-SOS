@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -19,7 +18,6 @@ namespace TodoList
 
             while (true)
             {
-
                 while (AppInfo.CurrentProfile == null)
                 {
                     Console.Write("Войти в существующий профиль [y], создать новый [n] или выйти [exit]?: ");
@@ -39,6 +37,14 @@ namespace TodoList
                 var currentUserTodos = FileManager.LoadTodos(AppInfo.CurrentUserTodosFilePath);
                 AppInfo.UserTodos[AppInfo.CurrentProfile.Id] = currentUserTodos;
 
+                Action<TodoItem> saveHandler = (item) =>
+                    FileManager.SaveTodos(currentUserTodos, AppInfo.CurrentUserTodosFilePath);
+
+                currentUserTodos.OnTodoAdded += saveHandler;
+                currentUserTodos.OnTodoDeleted += saveHandler;
+                currentUserTodos.OnTodoUpdated += saveHandler;
+                currentUserTodos.OnStatusChanged += saveHandler;
+
                 AppInfo.UndoStack = new Stack<ICommand>();
                 AppInfo.RedoStack = new Stack<ICommand>();
 
@@ -49,7 +55,12 @@ namespace TodoList
                 {
                     if (AppInfo.CurrentProfile == null)
                     {
-                        Console.WriteLine("\nВы вышли из профиля или переключаетесь. Выберите действие:");
+                        currentUserTodos.OnTodoAdded -= saveHandler;
+                        currentUserTodos.OnTodoDeleted -= saveHandler;
+                        currentUserTodos.OnTodoUpdated -= saveHandler;
+                        currentUserTodos.OnStatusChanged -= saveHandler;
+
+                        Console.WriteLine("\nВы вышли из профиля. Выберите действие:");
                         break;
                     }
 
@@ -71,7 +82,7 @@ namespace TodoList
                         try
                         {
                             command.Execute();
-                            if (command is AddCommand or RemoveCommand or UpdateCommand or StatusCommand)
+                            if (command is not (ViewCommand or HelpCommand or UndoCommand or RedoCommand or ProfileCommand))
                             {
                                 AppInfo.UndoStack.Push(command);
                                 AppInfo.RedoStack.Clear();

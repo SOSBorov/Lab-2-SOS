@@ -1,5 +1,4 @@
-﻿using System.Windows.Input;
-using System;
+﻿using System;
 
 namespace TodoList
 {
@@ -13,12 +12,10 @@ namespace TodoList
         public void Execute()
         {
             if (AppInfo.CurrentUserTodoList == null) throw new InvalidOperationException("TodoList не инициализирован для текущего пользователя");
-            if (TodosFilePath == null) throw new InvalidOperationException("Путь к файлу задач не установлен");
 
             if (Multiline)
             {
                 AppInfo.CurrentUserTodoList.ReadFromConsoleAndAddMultiline();
-                FileManager.SaveTodos(AppInfo.CurrentUserTodoList, TodosFilePath);
                 return;
             }
 
@@ -29,9 +26,6 @@ namespace TodoList
             }
 
             _addedItem = AppInfo.CurrentUserTodoList.Add(Text!);
-            Console.WriteLine("Задача добавлена.");
-
-            FileManager.SaveTodos(AppInfo.CurrentUserTodoList, TodosFilePath);
         }
 
         public void Unexecute()

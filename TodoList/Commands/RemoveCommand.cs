@@ -1,5 +1,4 @@
-﻿using System.Windows.Input;
-using System;
+﻿using System;
 using System.Linq;
 
 namespace TodoList
@@ -13,14 +12,12 @@ namespace TodoList
         public void Execute()
         {
             if (AppInfo.CurrentUserTodoList == null) throw new InvalidOperationException("TodoList не инициализирован для текущего пользователя");
-            if (TodosFilePath == null) throw new InvalidOperationException("Путь к файлу задач не установлен");
 
             _removedItem = AppInfo.CurrentUserTodoList.GetById(Id);
 
             if (_removedItem != null)
             {
                 AppInfo.CurrentUserTodoList.Remove(Id);
-                FileManager.SaveTodos(AppInfo.CurrentUserTodoList, TodosFilePath);
             }
         }
 

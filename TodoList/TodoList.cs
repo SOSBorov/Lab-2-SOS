@@ -8,8 +8,14 @@ namespace TodoList
 {
     public class TodoList
     {
+        public event Action<TodoItem>? OnTodoAdded;
+        public event Action<TodoItem>? OnTodoDeleted;
+        public event Action<TodoItem>? OnTodoUpdated;
+        public event Action<TodoItem>? OnStatusChanged;
+
         private readonly List<TodoItem> _items = new();
         private int _nextId = 1;
+        private const int TRUNCATE_LENGTH = 70;
 
         public TodoList() { }
 
@@ -29,6 +35,9 @@ namespace TodoList
         {
             var newItem = new TodoItem { Id = _nextId++, Text = text };
             _items.Add(newItem);
+
+            OnTodoAdded?.Invoke(newItem);
+
             return newItem;
         }
 
@@ -59,8 +68,11 @@ namespace TodoList
             int indexToRemove = _items.FindIndex(item => item.Id == id);
             if (indexToRemove != -1)
             {
+                var removedItem = _items[indexToRemove];
                 _items.RemoveAt(indexToRemove);
                 Console.WriteLine("Задача удалена.");
+
+                OnTodoDeleted?.Invoke(removedItem);
             }
             else
             {
@@ -76,6 +88,8 @@ namespace TodoList
                 _items[indexToUpdate].Status = newStatus;
                 _items[indexToUpdate].LastUpdated = DateTime.Now;
                 Console.WriteLine($"Статус задачи #{id} изменен на '{newStatus}'.");
+
+                OnStatusChanged?.Invoke(_items[indexToUpdate]);
             }
             else
             {
@@ -91,6 +105,8 @@ namespace TodoList
                 _items[indexToUpdate].Text = newText;
                 _items[indexToUpdate].LastUpdated = DateTime.Now;
                 Console.WriteLine("Задача обновлена.");
+
+                OnTodoUpdated?.Invoke(_items[indexToUpdate]);
             }
             else
             {
@@ -113,10 +129,33 @@ namespace TodoList
                 if (showAll || showStatus) prefixBuilder.Append($"({item.Status}) ");
                 string prefix = prefixBuilder.ToString();
 
-                int availableWidth = Console.WindowWidth - prefix.Length - 1;
-                if (availableWidth < 10) availableWidth = 10;
-                string padding = new string(' ', prefix.Length);
-                string textToDisplay = WrapText(item.Text, availableWidth, padding);
+                string textToDisplay;
+                if (showAll)
+                {
+                    int availableWidth = Console.WindowWidth - prefix.Length - 1;
+                    if (availableWidth < 10) availableWidth = 10;
+                    string padding = new string(' ', prefix.Length);
+                    textToDisplay = WrapText(item.Text, availableWidth, padding);
+                }
+                else
+                {
+                    string firstLine = item.Text.Split('\n').FirstOrDefault() ?? string.Empty;
+                    bool isMultiline = item.Text.Contains('\n') && !string.IsNullOrWhiteSpace(item.Text.Replace(firstLine, ""));
+
+                    if (firstLine.Length > TRUNCATE_LENGTH)
+                    {
+                        textToDisplay = firstLine.Substring(0, TRUNCATE_LENGTH) + "...";
+                    }
+                    else
+                    {
+                        textToDisplay = firstLine;
+                    }
+
+                    if (isMultiline)
+                    {
+                        textToDisplay += " [...]";
+                    }
+                }
 
                 Console.Write(prefix);
                 Console.Write(textToDisplay);
@@ -132,24 +171,17 @@ namespace TodoList
             if (string.IsNullOrEmpty(text)) return string.Empty;
 
             var resultBuilder = new StringBuilder();
-            string[] lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            string[] lines = text.Split('\n');
 
             for (int i = 0; i < lines.Length; i++)
             {
-                string line = lines[i].TrimEnd();
-                if (string.IsNullOrWhiteSpace(line))
-                {
-                    if (resultBuilder.Length > 0) resultBuilder.AppendLine();
-                    if (i < lines.Length - 1) resultBuilder.Append(padding);
-                    continue;
-                }
-
+                string line = lines[i];
                 var words = line.Split(' ');
                 var currentLine = new StringBuilder();
 
                 foreach (var word in words)
                 {
-                    if (currentLine.Length > 0 && currentLine.Length + word.Length + 1 > maxWidth)
+                    if (currentLine.Length + word.Length + 1 > maxWidth)
                     {
                         resultBuilder.AppendLine(currentLine.ToString().TrimEnd());
                         currentLine.Clear().Append(padding);
