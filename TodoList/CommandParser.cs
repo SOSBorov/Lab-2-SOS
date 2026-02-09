@@ -25,8 +25,6 @@ namespace TodoList
                 { "profile", ParseProfileCommand },
                 { "undo", args => new UndoCommand() },
                 { "redo", args => new RedoCommand() },
-
-                // 🔥 Добавлено в Задании 1
                 { "search", ParseSearchCommand }
             };
         }
