@@ -44,13 +44,68 @@ namespace TodoList
                 return handler(args);
             }
 
-            Console.WriteLine("Неизвестная командa. Напишите 'help' для списка команд.");
+            Console.WriteLine("Неизвестная команда. Напишите 'help' для списка команд.");
             return null;
         }
 
         private static ICommand ParseSearchCommand(string[] args)
         {
-            return new SearchCommand();
+            var cmd = new SearchCommand();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                string arg = args[i].ToLowerInvariant();
+
+                switch (arg)
+                {
+                    case "--contains":
+                        if (i + 1 < args.Length) cmd.ContainsText = args[++i];
+                        break;
+
+                    case "--starts-with":
+                        if (i + 1 < args.Length) cmd.StartsWithText = args[++i];
+                        break;
+
+                    case "--ends-with":
+                        if (i + 1 < args.Length) cmd.EndsWithText = args[++i];
+                        break;
+
+                    case "--from":
+                        if (i + 1 < args.Length && DateTime.TryParse(args[++i], out var fromDate))
+                            cmd.FromDate = fromDate;
+                        break;
+
+                    case "--to":
+                        if (i + 1 < args.Length && DateTime.TryParse(args[++i], out var toDate))
+                            cmd.ToDate = toDate;
+                        break;
+
+                    case "--status":
+                        if (i + 1 < args.Length && Enum.TryParse<TodoStatus>(args[++i], true, out var status))
+                            cmd.Status = status;
+                        break;
+
+                    case "--sort":
+                        if (i + 1 < args.Length)
+                        {
+                            string sort = args[++i].ToLowerInvariant();
+                            if (sort == "text" || sort == "date")
+                                cmd.SortBy = sort;
+                        }
+                        break;
+
+                    case "--desc":
+                        cmd.Desc = true;
+                        break;
+
+                    case "--top":
+                        if (i + 1 < args.Length && int.TryParse(args[++i], out int top))
+                            cmd.Top = top;
+                        break;
+                }
+            }
+
+            return cmd;
         }
 
         private static ICommand ParseAddCommand(string[] args)
