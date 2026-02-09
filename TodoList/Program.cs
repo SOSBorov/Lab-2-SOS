@@ -82,7 +82,7 @@ namespace TodoList
                         try
                         {
                             command.Execute();
-                            if (command is not (ViewCommand or HelpCommand or UndoCommand or RedoCommand or ProfileCommand))
+                            if (command is not (ViewCommand or HelpCommand or UndoCommand or RedoCommand or ProfileCommand or SearchCommand))
                             {
                                 AppInfo.UndoStack.Push(command);
                                 AppInfo.RedoStack.Clear();

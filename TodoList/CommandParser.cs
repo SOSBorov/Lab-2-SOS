@@ -24,10 +24,12 @@ namespace TodoList
                 { "rm", ParseRemoveCommand },
                 { "profile", ParseProfileCommand },
                 { "undo", args => new UndoCommand() },
-                { "redo", args => new RedoCommand() }
+                { "redo", args => new RedoCommand() },
+
+                // 🔥 Добавлено в Задании 1
+                { "search", ParseSearchCommand }
             };
         }
-
 
         public static ICommand? Parse(string inputString)
         {
@@ -44,8 +46,13 @@ namespace TodoList
                 return handler(args);
             }
 
-            Console.WriteLine("Неизвестная команда. Напишите 'help' для списка команд.");
+            Console.WriteLine("Неизвестная командa. Напишите 'help' для списка команд.");
             return null;
+        }
+
+        private static ICommand ParseSearchCommand(string[] args)
+        {
+            return new SearchCommand();
         }
 
         private static ICommand ParseAddCommand(string[] args)
