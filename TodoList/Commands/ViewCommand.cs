@@ -19,7 +19,5 @@ namespace TodoList
 
             AppInfo.CurrentUserTodoList.ViewCustom(ShowIndex, ShowStatus, ShowUpdateDate, ShowAll);
         }
-
-        public void Unexecute() { }
     }
 }

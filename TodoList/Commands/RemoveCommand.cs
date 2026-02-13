@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Linq;
 
 namespace TodoList
 {
-    public class RemoveCommand : ICommand
+    public class RemoveCommand : ICommand, IUndo
     {
         public int Id { get; set; }
         public string? TodosFilePath { get; set; }
-        private TodoItem _removedItem;
+        private TodoItem? _removedItem;
 
         public void Execute()
         {
@@ -23,7 +22,7 @@ namespace TodoList
 
         public void Unexecute()
         {
-            if (_removedItem != null)
+            if (_removedItem != null && AppInfo.CurrentUserTodoList != null && TodosFilePath != null)
             {
                 AppInfo.CurrentUserTodoList.AddExistingItem(_removedItem);
                 FileManager.SaveTodos(AppInfo.CurrentUserTodoList, TodosFilePath);

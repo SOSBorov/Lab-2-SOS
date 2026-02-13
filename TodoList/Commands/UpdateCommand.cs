@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Linq;
 
 namespace TodoList
 {
-    public class UpdateCommand : ICommand
+    public class UpdateCommand : ICommand, IUndo
     {
         public int Id { get; set; }
         public string NewText { get; set; } = "";
         public string? TodosFilePath { get; set; }
-        private string _previousText;
+        private string? _previousText;
 
         public void Execute()
         {
@@ -25,7 +24,7 @@ namespace TodoList
 
         public void Unexecute()
         {
-            if (_previousText != null)
+            if (_previousText != null && AppInfo.CurrentUserTodoList != null && TodosFilePath != null)
             {
                 AppInfo.CurrentUserTodoList.Update(Id, _previousText);
                 FileManager.SaveTodos(AppInfo.CurrentUserTodoList, TodosFilePath);

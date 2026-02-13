@@ -2,12 +2,12 @@
 
 namespace TodoList
 {
-    public class AddCommand : ICommand
+    public class AddCommand : ICommand, IUndo
     {
         public string? Text { get; set; }
         public bool Multiline { get; set; }
         public string? TodosFilePath { get; set; }
-        private TodoItem _addedItem;
+        private TodoItem? _addedItem;
 
         public void Execute()
         {
@@ -25,12 +25,12 @@ namespace TodoList
                 return;
             }
 
-            _addedItem = AppInfo.CurrentUserTodoList.Add(Text!);
+            _addedItem = AppInfo.CurrentUserTodoList.Add(Text);
         }
 
         public void Unexecute()
         {
-            if (_addedItem != null)
+            if (_addedItem != null && AppInfo.CurrentUserTodoList != null && TodosFilePath != null)
             {
                 AppInfo.CurrentUserTodoList.Remove(_addedItem.Id);
                 FileManager.SaveTodos(AppInfo.CurrentUserTodoList, TodosFilePath);

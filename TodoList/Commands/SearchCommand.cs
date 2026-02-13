@@ -6,13 +6,13 @@ namespace TodoList
 {
     public class SearchCommand : ICommand
     {
-        public string ContainsText { get; set; }
-        public string StartsWithText { get; set; }
-        public string EndsWithText { get; set; }
+        public string ContainsText { get; set; } = string.Empty;
+        public string StartsWithText { get; set; } = string.Empty;
+        public string EndsWithText { get; set; } = string.Empty;
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
         public TodoStatus? Status { get; set; }
-        public string SortBy { get; set; } 
+        public string SortBy { get; set; } = string.Empty;
         public bool Desc { get; set; }
         public int? Top { get; set; }
 
@@ -48,13 +48,13 @@ namespace TodoList
 
             if (!string.IsNullOrWhiteSpace(SortBy))
             {
-                if (SortBy == "text")
+                if (SortBy.Equals("text", StringComparison.OrdinalIgnoreCase))
                 {
                     items = Desc
                         ? items.OrderByDescending(i => i.Text)
                         : items.OrderBy(i => i.Text);
                 }
-                else if (SortBy == "date")
+                else if (SortBy.Equals("date", StringComparison.OrdinalIgnoreCase))
                 {
                     items = Desc
                         ? items.OrderByDescending(i => i.LastUpdated)
@@ -65,7 +65,7 @@ namespace TodoList
             if (Top.HasValue)
                 items = items.Take(Top.Value);
 
-            var result = items.ToList();
+            var result = new TodoList(items.ToList());
 
             if (result.Count == 0)
             {
@@ -73,20 +73,7 @@ namespace TodoList
                 return;
             }
 
-            Console.WriteLine("Index | Text                           | Status      | LastUpdate");
-            Console.WriteLine("---------------------------------------------------------------------");
-
-            foreach (var item in result)
-            {
-                string shortText = item.Text.Length > 30
-                    ? item.Text.Substring(0, 30) + "..."
-                    : item.Text;
-
-                Console.WriteLine(
-                    $"{item.Id,-5} | {shortText,-30} | {item.Status,-10} | {item.LastUpdated:yyyy-MM-dd}");
-            }
+            result.ViewCustom(showIndex: true, showStatus: true, showUpdateDate: true, showAll: false);
         }
-
-        public void Unexecute() { }
     }
 }

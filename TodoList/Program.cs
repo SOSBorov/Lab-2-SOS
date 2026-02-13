@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -21,7 +20,7 @@ namespace TodoList
                 while (AppInfo.CurrentProfile == null)
                 {
                     Console.Write("Войти в существующий профиль [y], создать новый [n] или выйти [exit]?: ");
-                    string choice = Console.ReadLine()?.ToLower();
+                    string choice = Console.ReadLine()?.ToLower() ?? "";
 
                     if (choice == "y") HandleLogin();
                     else if (choice == "n") HandleRegistration();
@@ -38,7 +37,10 @@ namespace TodoList
                 AppInfo.UserTodos[AppInfo.CurrentProfile.Id] = currentUserTodos;
 
                 Action<TodoItem> saveHandler = (item) =>
-                    FileManager.SaveTodos(currentUserTodos, AppInfo.CurrentUserTodosFilePath);
+                {
+                    if (AppInfo.CurrentUserTodosFilePath != null)
+                        FileManager.SaveTodos(currentUserTodos, AppInfo.CurrentUserTodosFilePath);
+                };
 
                 currentUserTodos.OnTodoAdded += saveHandler;
                 currentUserTodos.OnTodoDeleted += saveHandler;
@@ -82,7 +84,7 @@ namespace TodoList
                         try
                         {
                             command.Execute();
-                            if (command is not (ViewCommand or HelpCommand or UndoCommand or RedoCommand or ProfileCommand or SearchCommand))
+                            if (command is IUndo)
                             {
                                 AppInfo.UndoStack.Push(command);
                                 AppInfo.RedoStack.Clear();
@@ -100,9 +102,9 @@ namespace TodoList
         private static void HandleLogin()
         {
             Console.Write("Введите логин: ");
-            string login = Console.ReadLine();
+            string login = Console.ReadLine() ?? "";
             Console.Write("Введите пароль: ");
-            string password = Console.ReadLine();
+            string password = Console.ReadLine() ?? "";
 
             var profile = AppInfo.AllProfiles.FirstOrDefault(p => p.Login.Equals(login) && p.Password.Equals(password));
 
@@ -122,7 +124,7 @@ namespace TodoList
             while (true)
             {
                 Console.Write("Введите новый логин: ");
-                login = Console.ReadLine();
+                login = Console.ReadLine() ?? "";
                 if (string.IsNullOrWhiteSpace(login))
                 {
                     Console.WriteLine("Логин не может быть пустым.");
@@ -139,11 +141,13 @@ namespace TodoList
             }
 
             Console.Write("Введите пароль: ");
-            string password = Console.ReadLine();
+            string password = Console.ReadLine() ?? "";
             Console.Write("Введите ваше имя: ");
-            string firstName = Console.ReadLine();
+            string firstName = Console.ReadLine() ?? "";
             Console.Write("Введите вашу фамилию: ");
-            string lastName = Console.ReadLine();
+            string? lastName = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(lastName)) lastName = null;
+
 
             int birthYear;
             while (true)
@@ -161,7 +165,7 @@ namespace TodoList
             FileManager.SaveProfiles(AppInfo.AllProfiles, FileManager.ProfileFilePath);
 
             AppInfo.CurrentProfile = newProfile;
-            Console.WriteLine("Новый профиль успешно создан.");
+            Console.WriteLine("Новый профиль успешно создан."); //By.Garibos..Krendel Da
         }
     }
 }

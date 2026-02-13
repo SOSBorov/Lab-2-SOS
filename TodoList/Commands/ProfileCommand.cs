@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 
@@ -65,10 +64,6 @@ namespace TodoList
             {
                 Console.WriteLine("Профиль оставлен без изменений.");
             }
-        }
-
-        public void Unexecute()
-        {
         }
     }
 }

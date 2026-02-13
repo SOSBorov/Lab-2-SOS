@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Linq;
 
 namespace TodoList
 {
-    public class StatusCommand : ICommand
+    public class StatusCommand : ICommand, IUndo
     {
         public int Id { get; set; }
         public TodoStatus NewStatus { get; set; }
@@ -25,8 +24,11 @@ namespace TodoList
 
         public void Unexecute()
         {
-            AppInfo.CurrentUserTodoList.SetStatus(Id, _previousStatus);
-            FileManager.SaveTodos(AppInfo.CurrentUserTodoList, TodosFilePath);
+            if (AppInfo.CurrentUserTodoList != null && TodosFilePath != null)
+            {
+                AppInfo.CurrentUserTodoList.SetStatus(Id, _previousStatus);
+                FileManager.SaveTodos(AppInfo.CurrentUserTodoList, TodosFilePath);
+            }
         }
     }
 }

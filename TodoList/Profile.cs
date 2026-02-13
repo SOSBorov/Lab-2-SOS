@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 
 namespace TodoList
 {
@@ -9,15 +8,17 @@ namespace TodoList
         public string Login { get; set; }
         public string Password { get; set; }
         public string FirstName { get; set; } = "Default";
-        public string LastName { get; set; }
+        public string? LastName { get; set; }
         public int BirthYear { get; set; }
 
         public Profile()
         {
             Id = Guid.NewGuid();
+            Login = string.Empty;
+            Password = string.Empty;
         }
 
-        public Profile(string login, string password, string firstName, string lastName, int birthYear)
+        public Profile(string login, string password, string firstName, string? lastName, int birthYear)
         {
             Id = Guid.NewGuid();
             Login = login;

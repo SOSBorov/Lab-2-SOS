@@ -9,16 +9,18 @@ namespace TodoList
             if (AppInfo.UndoStack.Count > 0)
             {
                 ICommand lastCommand = AppInfo.UndoStack.Pop();
-                lastCommand.Unexecute();
-                AppInfo.RedoStack.Push(lastCommand);
-                Console.WriteLine("Последнее действие отменено.");
+
+                if (lastCommand is IUndo undoableCommand)
+                {
+                    undoableCommand.Unexecute();
+                    AppInfo.RedoStack.Push(lastCommand);
+                    Console.WriteLine("Последнее действие отменено.");
+                }
             }
             else
             {
                 Console.WriteLine("Нет действий для отмены.");
             }
         }
-
-        public void Unexecute() { }
     }
 }
