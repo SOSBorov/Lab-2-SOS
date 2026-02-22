@@ -77,7 +77,6 @@ namespace TodoList
 						return;
 					}
 					if (input.Length == 0) continue;
-
 					try
 					{
 						var command = CommandParser.Parse(input);
@@ -93,7 +92,7 @@ namespace TodoList
 					}
 					catch (Exception ex)
 					{
-						Console.WriteLine($"Произошла непредвиденная ошибка: {ex.Message}");
+						Console.WriteLine($"Ошибка: {ex.Message}");
 					}
 				}
 			}
