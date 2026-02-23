@@ -90,7 +90,7 @@ namespace TodoList
 					try
 					{
 						var command = CommandParser.Parse(input);
-						command.Execute();
+						command.Execute(); 
 						if (command is IUndo)
 						{
 							AppInfo.UndoStack.Push(command);
@@ -169,6 +169,7 @@ namespace TodoList
 			Console.WriteLine("Новый профиль успешно создан.");
 		}
 	}
+
 
 	public class InvalidCommandException : Exception
 	{

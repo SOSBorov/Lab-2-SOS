@@ -28,15 +28,12 @@ namespace TodoList
 		}
 
 		public int Count => _items.Count;
-		public TodoItem this[int index] => _items[index];
 
 		public TodoItem Add(string text)
 		{
 			var newItem = new TodoItem { Id = _nextId++, Text = text };
 			_items.Add(newItem);
-
 			OnTodoAdded?.Invoke(newItem);
-
 			return newItem;
 		}
 
@@ -72,14 +69,12 @@ namespace TodoList
 
 		public void Remove(int id)
 		{
-			int indexToRemove = _items.FindIndex(item => item.Id == id);
-			if (indexToRemove != -1)
+			var item = _items.FirstOrDefault(i => i.Id == id);
+			if (item != null)
 			{
-				var removedItem = _items[indexToRemove];
-				_items.RemoveAt(indexToRemove);
+				_items.Remove(item);
 				Console.WriteLine("Задача удалена.");
-
-				OnTodoDeleted?.Invoke(removedItem);
+				OnTodoDeleted?.Invoke(item);
 			}
 			else
 			{
@@ -89,14 +84,13 @@ namespace TodoList
 
 		public void SetStatus(int id, TodoStatus newStatus)
 		{
-			int indexToUpdate = _items.FindIndex(item => item.Id == id);
-			if (indexToUpdate != -1)
+			var item = _items.FirstOrDefault(i => i.Id == id);
+			if (item != null)
 			{
-				_items[indexToUpdate].Status = newStatus;
-				_items[indexToUpdate].LastUpdated = DateTime.Now;
+				item.Status = newStatus;
+				item.LastUpdated = DateTime.Now;
 				Console.WriteLine($"Статус задачи #{id} изменен на '{newStatus}'.");
-
-				OnStatusChanged?.Invoke(_items[indexToUpdate]);
+				OnStatusChanged?.Invoke(item);
 			}
 			else
 			{
@@ -106,14 +100,13 @@ namespace TodoList
 
 		public void Update(int id, string newText)
 		{
-			int indexToUpdate = _items.FindIndex(item => item.Id == id);
-			if (indexToUpdate != -1)
+			var item = _items.FirstOrDefault(i => i.Id == id);
+			if (item != null)
 			{
-				_items[indexToUpdate].Text = newText;
-				_items[indexToUpdate].LastUpdated = DateTime.Now;
+				item.Text = newText;
+				item.LastUpdated = DateTime.Now;
 				Console.WriteLine("Задача обновлена.");
-
-				OnTodoUpdated?.Invoke(_items[indexToUpdate]);
+				OnTodoUpdated?.Invoke(item);
 			}
 			else
 			{
