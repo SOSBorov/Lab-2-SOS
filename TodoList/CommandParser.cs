@@ -7,11 +7,11 @@ namespace TodoList
 {
 	public static class CommandParser
 	{
-		private static readonly Dictionary<string, Func<string[], ICommand?>> _commandHandlers;
+		private static readonly Dictionary<string, Func<string[], ICommand>> _commandHandlers;
 
 		static CommandParser()
 		{
-			_commandHandlers = new Dictionary<string, Func<string[], ICommand?>>
+			_commandHandlers = new Dictionary<string, Func<string[], ICommand>>
 			{
 				{ "help", args => new HelpCommand() },
 				{ "add", ParseAddCommand },
@@ -28,13 +28,12 @@ namespace TodoList
 			};
 		}
 
-		public static ICommand? Parse(string inputString)
+		public static ICommand Parse(string inputString)
 		{
-			if (string.IsNullOrWhiteSpace(inputString)) return null;
+			if (string.IsNullOrWhiteSpace(inputString))
+				throw new InvalidCommandException("Команда не может быть пустой.");
 
 			var parts = SplitArgs(inputString).ToArray();
-			if (parts.Length == 0) return null;
-
 			var commandName = parts[0].ToLowerInvariant();
 			var args = parts.Skip(1).ToArray();
 
@@ -43,101 +42,65 @@ namespace TodoList
 				return handler(args);
 			}
 
-			Console.WriteLine("Неизвестная команда. Напишите 'help' для списка команд.");
-			return null;
+			throw new InvalidCommandException($"Неизвестная команда '{commandName}'. Напишите 'help' для списка команд.");
 		}
 
-		private static ICommand? ParseSearchCommand(string[] args)
+		private static ICommand ParseSearchCommand(string[] args)
 		{
 			var cmd = new SearchCommand();
-			bool hasError = false;
-
 			for (int i = 0; i < args.Length; i++)
 			{
 				string arg = args[i].ToLowerInvariant();
-
 				switch (arg)
 				{
+					case "--from":
+						if (i + 1 >= args.Length || !DateTime.TryParse(args[++i], out var fromDate))
+							throw new InvalidArgumentException("Некорректный формат даты для флага --from.");
+						cmd.FromDate = fromDate;
+						break;
+					case "--to":
+						if (i + 1 >= args.Length || !DateTime.TryParse(args[++i], out var toDate))
+							throw new InvalidArgumentException("Некорректный формат даты для флага --to.");
+						cmd.ToDate = toDate;
+						break;
+					case "--top":
+						if (i + 1 >= args.Length || !int.TryParse(args[++i], out int top) || top <= 0)
+							throw new InvalidArgumentException("Значение для --top должно быть положительным числом.");
+						cmd.Top = top;
+						break;
 					case "--contains":
 						if (i + 1 < args.Length) cmd.ContainsText = args[++i];
 						break;
-
 					case "--starts-with":
 						if (i + 1 < args.Length) cmd.StartsWithText = args[++i];
 						break;
-
 					case "--ends-with":
 						if (i + 1 < args.Length) cmd.EndsWithText = args[++i];
 						break;
-
-					case "--from":
-						if (i + 1 < args.Length && DateTime.TryParse(args[++i], out var fromDate))
-						{
-							cmd.FromDate = fromDate;
-						}
-						else
-						{
-							Console.WriteLine($"Ошибка: некорректный формат даты для флага --from. Используйте формат, понятный вашей системе (например, YYYY-MM-DD).");
-							hasError = true;
-						}
-						break;
-
-					case "--to":
-						if (i + 1 < args.Length && DateTime.TryParse(args[++i], out var toDate))
-						{
-							cmd.ToDate = toDate;
-						}
-						else
-						{
-							Console.WriteLine($"Ошибка: некорректный формат даты для флага --to. Используйте формат, понятный вашей системе (например, YYYY-MM-DD).");
-							hasError = true;
-						}
-						break;
-
 					case "--status":
-						if (i + 1 < args.Length && Enum.TryParse<TodoStatus>(args[++i], true, out var status))
-						{
-							cmd.Status = status;
-						}
-						else
-						{
-							Console.WriteLine($"Ошибка: некорректный статус. Доступные статусы: NotStarted, InProgress, Completed, Postponed, Failed.");
-							hasError = true;
-						}
+						if (i + 1 >= args.Length || !Enum.TryParse<TodoStatus>(args[++i], true, out var status))
+							throw new InvalidArgumentException("Некорректный статус. Доступные: NotStarted, InProgress, Completed, Postponed, Failed");
+						cmd.Status = status;
 						break;
-
 					case "--sort":
 						if (i + 1 < args.Length)
 						{
 							string sort = args[++i].ToLowerInvariant();
 							if (sort == "text" || sort == "date")
 								cmd.SortBy = sort;
+							else
+								throw new InvalidArgumentException("Значение для --sort может быть только 'text' или 'date'.");
 						}
 						break;
-
 					case "--desc":
 						cmd.Desc = true;
 						break;
-
-					case "--top":
-						if (i + 1 < args.Length && int.TryParse(args[++i], out int top) && top > 0)
-						{
-							cmd.Top = top;
-						}
-						else
-						{
-							Console.WriteLine($"Ошибка: значение для --top должно быть положительным числом.");
-							hasError = true;
-						}
-						break;
 				}
-				if (hasError) return null;
 			}
-
 			return cmd;
 		}
 
-		private static ICommand? ParseAddCommand(string[] args)
+		private static ICommand ParseAddCommand(string[] args)
 		{
 			var add = new AddCommand { TodosFilePath = AppInfo.CurrentUserTodosFilePath };
 			var lowerArgs = args.Select(a => a.ToLowerInvariant()).ToArray();
@@ -151,11 +114,50 @@ namespace TodoList
 			var text = string.Join(' ', args);
 			if (string.IsNullOrWhiteSpace(text))
 			{
-				Console.WriteLine("Ошибка: текст задачи не может быть пустым.");
-				return null;
+				throw new InvalidArgumentException("Текст задачи не может быть пустым.");
 			}
 			add.Text = text;
 			return add;
+		}
+
+		private static ICommand ParseStatusCommand(string[] args)
+		{
+			if (args.Length < 2)
+				throw new InvalidArgumentException("Использование: status <номер_задачи> <новый_статус>");
+
+			if (!int.TryParse(args[0], out int id))
+				throw new InvalidArgumentException($"'{args[0]}' не является корректным номером задачи.");
+
+			if (!Enum.TryParse<TodoStatus>(args[1], true, out TodoStatus newStatus))
+				throw new InvalidArgumentException($"'{args[1]}' не является корректным статусом. Доступные: NotStarted, InProgress, Completed, Postponed, Failed");
+
+			return new StatusCommand { Id = id, NewStatus = newStatus, TodosFilePath = AppInfo.CurrentUserTodosFilePath };
+		}
+
+		private static ICommand ParseUpdateCommand(string[] args)
+		{
+			if (args.Length < 2)
+				throw new InvalidArgumentException("Использование: update <номер_задачи> <новый текст>");
+
+			if (!int.TryParse(args[0], out int id))
+				throw new InvalidArgumentException($"'{args[0]}' не является корректным номером задачи.");
+
+			var newText = string.Join(' ', args.Skip(1));
+			if (string.IsNullOrWhiteSpace(newText))
+				throw new InvalidArgumentException("Новый текст задачи не может быть пустым.");
+
+			return new UpdateCommand { Id = id, NewText = newText, TodosFilePath = AppInfo.CurrentUserTodosFilePath };
+		}
+
+		private static ICommand ParseRemoveCommand(string[] args)
+		{
+			if (args.Length < 1)
+				throw new InvalidArgumentException("Использование: delete <номер_задачи>");
+
+			if (!int.TryParse(args[0], out int id))
+				throw new InvalidArgumentException($"'{args[0]}' не является корректным номером задачи.");
+
+			return new RemoveCommand { Id = id, TodosFilePath = AppInfo.CurrentUserTodosFilePath };
 		}
 
 		private static ICommand ParseViewCommand(string[] args)
@@ -180,63 +182,6 @@ namespace TodoList
 				if (flag == "all") view.ShowAll = true;
 			}
 			return view;
-		}
-
-		private static ICommand? ParseStatusCommand(string[] args)
-		{
-			if (args.Length < 2)
-			{
-				Console.WriteLine("Использование: status <номер_задачи> <новый_статус>");
-				return null;
-			}
-			if (!int.TryParse(args[0], out int id))
-			{
-				Console.WriteLine($"Ошибка: '{args[0]}' не является корректным номером задачи.");
-				return null;
-			}
-			if (!Enum.TryParse<TodoStatus>(args[1], true, out TodoStatus newStatus))
-			{
-				Console.WriteLine($"Ошибка: '{args[1]}' не является корректным статусом.");
-				Console.WriteLine("Доступные статусы: NotStarted, InProgress, Completed, Postponed, Failed");
-				return null;
-			}
-			return new StatusCommand { Id = id, NewStatus = newStatus, TodosFilePath = AppInfo.CurrentUserTodosFilePath };
-		}
-
-		private static ICommand? ParseUpdateCommand(string[] args)
-		{
-			if (args.Length < 2)
-			{
-				Console.WriteLine("Использование: update <номер_задачи> <новый текст>");
-				return null;
-			}
-			if (!int.TryParse(args[0], out int id))
-			{
-				Console.WriteLine($"Ошибка: '{args[0]}' не является корректным номером задачи.");
-				return null;
-			}
-			var newText = string.Join(' ', args.Skip(1));
-			if (string.IsNullOrWhiteSpace(newText))
-			{
-				Console.WriteLine("Ошибка: новый текст задачи не может быть пустым.");
-				return null;
-			}
-			return new UpdateCommand { Id = id, NewText = newText, TodosFilePath = AppInfo.CurrentUserTodosFilePath };
-		}
-
-		private static ICommand? ParseRemoveCommand(string[] args)
-		{
-			if (args.Length < 1)
-			{
-				Console.WriteLine("Использование: delete <номер_задачи>");
-				return null;
-			}
-			if (!int.TryParse(args[0], out int id))
-			{
-				Console.WriteLine($"Ошибка: '{args[0]}' не является корректным номером задачи.");
-				return null;
-			}
-			return new RemoveCommand { Id = id, TodosFilePath = AppInfo.CurrentUserTodosFilePath };
 		}
 
 		private static ICommand ParseProfileCommand(string[] args)

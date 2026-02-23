@@ -19,17 +19,27 @@ namespace TodoList
 			{
 				while (AppInfo.CurrentProfile == null)
 				{
-					Console.Write("Войти в существующий профиль [y], создать новый [n] или выйти [exit]?: ");
-					string choice = Console.ReadLine()?.ToLower() ?? "";
-
-					if (choice == "y") HandleLogin();
-					else if (choice == "n") HandleRegistration();
-					else if (choice == "exit")
+					try
 					{
-						Console.WriteLine("\nСпасибо за использование приложения. До свидания!");
-						return;
+						Console.Write("Войти в существующий профиль [y], создать новый [n] или выйти [exit]?: ");
+						string choice = Console.ReadLine()?.ToLower() ?? "";
+
+						if (choice == "y") HandleLogin();
+						else if (choice == "n") HandleRegistration();
+						else if (choice == "exit")
+						{
+							Console.WriteLine("\nСпасибо за использование приложения. До свидания!");
+							return;
+						}
+						else if (!string.IsNullOrWhiteSpace(choice))
+						{
+							Console.WriteLine("Неверный ввод.");
+						}
 					}
-					else Console.WriteLine("Неверный ввод.");
+					catch (Exception ex)
+					{
+						Console.WriteLine($"Ошибка: {ex.Message}");
+					}
 				}
 
 				AppInfo.CurrentUserTodosFilePath = Path.Combine(FileManager.DataDirectory, $"todos_{AppInfo.CurrentProfile.Id}.csv");
@@ -68,7 +78,7 @@ namespace TodoList
 
 					Console.Write("> ");
 					var input = Console.ReadLine();
-					if (input == null) continue;
+					if (string.IsNullOrWhiteSpace(input)) continue;
 
 					input = input.Trim();
 					if (input.Equals("exit", StringComparison.OrdinalIgnoreCase))
@@ -76,18 +86,15 @@ namespace TodoList
 						Console.WriteLine("\nСпасибо за использование приложения. До свидания!");
 						return;
 					}
-					if (input.Length == 0) continue;
+
 					try
 					{
 						var command = CommandParser.Parse(input);
-						if (command != null)
+						command.Execute();
+						if (command is IUndo)
 						{
-							command.Execute();
-							if (command is IUndo)
-							{
-								AppInfo.UndoStack.Push(command);
-								AppInfo.RedoStack.Clear();
-							}
+							AppInfo.UndoStack.Push(command);
+							AppInfo.RedoStack.Clear();
 						}
 					}
 					catch (Exception ex)
@@ -102,14 +109,12 @@ namespace TodoList
 		{
 			Console.Write("Введите логин: ");
 			string? login = Console.ReadLine();
-
 			Console.Write("Введите пароль: ");
 			string? password = Console.ReadLine();
 
 			if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
 			{
-				Console.WriteLine("Логин и пароль не могут быть пустыми.");
-				return;
+				throw new AuthenticationException("Логин и пароль не могут быть пустыми.");
 			}
 
 			var profile = AppInfo.AllProfiles.FirstOrDefault(p => p.Login.Equals(login) && p.Password.Equals(password));
@@ -120,65 +125,41 @@ namespace TodoList
 			}
 			else
 			{
-				Console.WriteLine("Неверный логин или пароль.");
+				throw new AuthenticationException("Неверный логин или пароль.");
 			}
 		}
 
 		private static void HandleRegistration()
 		{
 			string login;
-			while (true)
-			{
-				Console.Write("Введите новый логин: ");
-				login = Console.ReadLine() ?? "";
-				if (string.IsNullOrWhiteSpace(login))
-				{
-					Console.WriteLine("Логин не может быть пустым.");
-					continue;
-				}
-				if (AppInfo.AllProfiles.Any(p => p.Login.Equals(login, StringComparison.OrdinalIgnoreCase)))
-				{
-					Console.WriteLine("Этот логин уже занят. Пожалуйста, выберите другой.");
-				}
-				else
-				{
-					break;
-				}
-			}
+			Console.Write("Введите новый логин: ");
+			login = Console.ReadLine() ?? "";
+			if (string.IsNullOrWhiteSpace(login))
+				throw new InvalidArgumentException("Логин не может быть пустым.");
+			if (AppInfo.AllProfiles.Any(p => p.Login.Equals(login, StringComparison.OrdinalIgnoreCase)))
+				throw new DuplicateLoginException($"Логин '{login}' уже занят. Пожалуйста, выберите другой.");
 
 			string password;
-			while (true)
-			{
-				Console.Write("Введите пароль: ");
-				password = Console.ReadLine() ?? "";
-				if (!string.IsNullOrWhiteSpace(password)) break;
-				Console.WriteLine("Пароль не может быть пустым.");
-			}
+			Console.Write("Введите пароль: ");
+			password = Console.ReadLine() ?? "";
+			if (string.IsNullOrWhiteSpace(password))
+				throw new InvalidArgumentException("Пароль не может быть пустым.");
 
 			string firstName;
-			while (true)
-			{
-				Console.Write("Введите ваше имя: ");
-				firstName = Console.ReadLine() ?? "";
-				if (!string.IsNullOrWhiteSpace(firstName)) break;
-				Console.WriteLine("Имя не может быть пустым.");
-			}
+			Console.Write("Введите ваше имя: ");
+			firstName = Console.ReadLine() ?? "";
+			if (string.IsNullOrWhiteSpace(firstName))
+				throw new InvalidArgumentException("Имя не может быть пустым.");
 
 			Console.Write("Введите вашу фамилию: ");
 			string? lastName = Console.ReadLine();
 			if (string.IsNullOrWhiteSpace(lastName)) lastName = null;
 
 			int birthYear;
-			while (true)
-			{
-				Console.Write("Введите год рождения (YYYY): ");
-				string? yearInput = Console.ReadLine();
-				if (int.TryParse(yearInput, out birthYear) && birthYear > 1900 && birthYear <= DateTime.Now.Year)
-				{
-					break;
-				}
-				Console.WriteLine("Неверный формат года. Пожалуйста, введите корректный год (например, 1995).");
-			}
+			Console.Write("Введите год рождения (YYYY): ");
+			string? yearInput = Console.ReadLine();
+			if (!int.TryParse(yearInput, out birthYear) || birthYear <= 1900 || birthYear > DateTime.Now.Year)
+				throw new InvalidArgumentException("Неверный формат года. Пожалуйста, введите корректный год (например, 1995).");
 
 			var newProfile = new Profile(login, password, firstName, lastName, birthYear);
 			AppInfo.AllProfiles.Add(newProfile);
@@ -187,5 +168,35 @@ namespace TodoList
 			AppInfo.CurrentProfile = newProfile;
 			Console.WriteLine("Новый профиль успешно создан.");
 		}
+	}
+
+	public class InvalidCommandException : Exception
+	{
+		public InvalidCommandException(string message) : base(message) { }
+	}
+
+	public class InvalidArgumentException : Exception
+	{
+		public InvalidArgumentException(string message) : base(message) { }
+	}
+
+	public class TaskNotFoundException : Exception
+	{
+		public TaskNotFoundException(string message) : base(message) { }
+	}
+
+	public class ProfileNotFoundException : Exception
+	{
+		public ProfileNotFoundException(string message) : base(message) { }
+	}
+
+	public class AuthenticationException : Exception
+	{
+		public AuthenticationException(string message) : base(message) { }
+	}
+
+	public class DuplicateLoginException : Exception
+	{
+		public DuplicateLoginException(string message) : base(message) { }
 	}
 }
