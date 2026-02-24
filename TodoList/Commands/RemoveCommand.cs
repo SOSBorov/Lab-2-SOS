@@ -10,11 +10,11 @@ namespace TodoList
 
 		public void Execute()
 		{
-			if (AppInfo.CurrentUserTodoList == null) throw new InvalidOperationException("TodoList не инициализирован для текущего пользователя");
+			if (AppInfo.CurrentUserTodoList == null)
+				throw new AuthenticationException("Вы не авторизованы. Войдите в профиль, чтобы работать с задачами.");
 
 			_removedItem = AppInfo.CurrentUserTodoList.GetById(Id);
-
-			AppInfo.CurrentUserTodoList.Remove(Id);
+			AppInfo.CurrentUserTodoList.Remove(Id); 
 		}
 
 		public void Unexecute()

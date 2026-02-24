@@ -11,18 +11,16 @@ namespace TodoList
 
 		public void Execute()
 		{
-			if (AppInfo.CurrentUserTodoList == null) throw new InvalidOperationException("TodoList не инициализирован для текущего пользователя");
+			if (AppInfo.CurrentUserTodoList == null)
+				throw new AuthenticationException("Вы не авторизованы. Войдите в профиль, чтобы работать с задачами.");
 
 			var itemToUpdate = AppInfo.CurrentUserTodoList.GetById(Id);
 
-			// Если задача существует, сохраняем ее предыдущий статус для отмены
 			if (itemToUpdate != null)
 			{
 				_previousStatus = itemToUpdate.Status;
 			}
 
-			// Вызываем метод изменения статуса.
-			// Если itemToUpdate был null, этот метод выбросит TaskNotFoundException.
 			AppInfo.CurrentUserTodoList.SetStatus(Id, NewStatus);
 		}
 
