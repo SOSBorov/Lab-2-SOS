@@ -47,6 +47,24 @@ namespace TodoList
 
 		private static ICommand ParseSearchCommand(string[] args)
 		{
+			var validFlags = new HashSet<string> {
+				"--contains", "--starts-with", "--ends-with", "--from", "--to",
+				"--status", "--sort", "--desc", "--top"
+			};
+
+			for (int i = 0; i < args.Length; i++)
+			{
+				string currentArg = args[i];
+				if (currentArg.StartsWith("--"))
+				{
+					if (!validFlags.Contains(currentArg.ToLowerInvariant()))
+					{
+						throw new InvalidArgumentException($"Неизвестный флаг для команды search: '{currentArg}'");
+					}
+					if (currentArg != "--desc") { i++; }
+				}
+			}
+
 			var cmd = new SearchCommand();
 			for (int i = 0; i < args.Length; i++)
 			{
@@ -68,15 +86,9 @@ namespace TodoList
 							throw new InvalidArgumentException("Значение для --top должно быть положительным числом.");
 						cmd.Top = top;
 						break;
-					case "--contains":
-						if (i + 1 < args.Length) cmd.ContainsText = args[++i];
-						break;
-					case "--starts-with":
-						if (i + 1 < args.Length) cmd.StartsWithText = args[++i];
-						break;
-					case "--ends-with":
-						if (i + 1 < args.Length) cmd.EndsWithText = args[++i];
-						break;
+					case "--contains": if (i + 1 < args.Length) cmd.ContainsText = args[++i]; break;
+					case "--starts-with": if (i + 1 < args.Length) cmd.StartsWithText = args[++i]; break;
+					case "--ends-with": if (i + 1 < args.Length) cmd.EndsWithText = args[++i]; break;
 					case "--status":
 						if (i + 1 >= args.Length || !Enum.TryParse<TodoStatus>(args[++i], true, out var status))
 							throw new InvalidArgumentException("Некорректный статус. Доступные: NotStarted, InProgress, Completed, Postponed, Failed");
@@ -86,18 +98,62 @@ namespace TodoList
 						if (i + 1 < args.Length)
 						{
 							string sort = args[++i].ToLowerInvariant();
-							if (sort == "text" || sort == "date")
-								cmd.SortBy = sort;
-							else
-								throw new InvalidArgumentException("Значение для --sort может быть только 'text' или 'date'.");
+							if (sort == "text" || sort == "date") cmd.SortBy = sort;
+							else throw new InvalidArgumentException("Значение для --sort может быть только 'text' или 'date'.");
 						}
 						break;
-					case "--desc":
-						cmd.Desc = true;
-						break;
+					case "--desc": cmd.Desc = true; break;
 				}
 			}
 			return cmd;
+		}
+
+		private static ICommand ParseViewCommand(string[] args)
+		{
+			var validShortFlags = new HashSet<char> { 'i', 's', 'd', 'a' };
+			var validLongFlags = new HashSet<string> { "index", "status", "update-date", "all" };
+
+			foreach (var arg in args)
+			{
+				if (arg.StartsWith("--"))
+				{
+					if (!validLongFlags.Contains(arg.Substring(2)))
+						throw new InvalidArgumentException($"Неизвестный флаг для команды view: '{arg}'");
+				}
+				else if (arg.StartsWith("-"))
+				{
+					foreach (char flag in arg.Substring(1))
+					{
+						if (!validShortFlags.Contains(flag))
+							throw new InvalidArgumentException($"Неизвестный флаг для команды view: '-{flag}'");
+					}
+				}
+				else
+				{
+					throw new InvalidArgumentException($"Некорректный аргумент для команды view: '{arg}'. View принимает только флаги.");
+				}
+			}
+
+			var view = new ViewCommand();
+			var flags = args.Where(p => p.StartsWith("-")).Select(p => p.TrimStart('-')).ToArray();
+			foreach (var flag in flags)
+			{
+				foreach (char f in flag)
+				{
+					switch (f)
+					{
+						case 'i': view.ShowIndex = true; break;
+						case 's': view.ShowStatus = true; break;
+						case 'd': view.ShowUpdateDate = true; break;
+						case 'a': view.ShowAll = true; break;
+					}
+				}
+				if (flag == "index") view.ShowIndex = true;
+				if (flag == "status") view.ShowStatus = true;
+				if (flag == "update-date") view.ShowUpdateDate = true;
+				if (flag == "all") view.ShowAll = true;
+			}
+			return view;
 		}
 
 		private static ICommand ParseAddCommand(string[] args)
@@ -158,30 +214,6 @@ namespace TodoList
 				throw new InvalidArgumentException($"'{args[0]}' не является корректным номером задачи.");
 
 			return new RemoveCommand { Id = id, TodosFilePath = AppInfo.CurrentUserTodosFilePath };
-		}
-
-		private static ICommand ParseViewCommand(string[] args)
-		{
-			var view = new ViewCommand();
-			var flags = args.Where(p => p.StartsWith("-")).Select(p => p.TrimStart('-')).ToArray();
-			foreach (var flag in flags)
-			{
-				foreach (char f in flag)
-				{
-					switch (f)
-					{
-						case 'i': view.ShowIndex = true; break;
-						case 's': view.ShowStatus = true; break;
-						case 'd': view.ShowUpdateDate = true; break;
-						case 'a': view.ShowAll = true; break;
-					}
-				}
-				if (flag == "index") view.ShowIndex = true;
-				if (flag == "status") view.ShowStatus = true;
-				if (flag == "update-date") view.ShowUpdateDate = true;
-				if (flag == "all") view.ShowAll = true;
-			}
-			return view;
 		}
 
 		private static ICommand ParseProfileCommand(string[] args)
