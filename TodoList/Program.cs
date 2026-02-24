@@ -36,9 +36,21 @@ namespace TodoList
 							Console.WriteLine("Неверный ввод.");
 						}
 					}
+					catch (AuthenticationException ex)
+					{
+						Console.WriteLine($"Ошибка авторизации: {ex.Message}");
+					}
+					catch (DuplicateLoginException ex)
+					{
+						Console.WriteLine($"Ошибка регистрации: {ex.Message}");
+					}
+					catch (InvalidArgumentException ex)
+					{
+						Console.WriteLine($"Ошибка ввода: {ex.Message}");
+					}
 					catch (Exception ex)
 					{
-						Console.WriteLine($"Ошибка: {ex.Message}");
+						Console.WriteLine($"Неожиданная ошибка: {ex.Message}");
 					}
 				}
 
@@ -90,16 +102,36 @@ namespace TodoList
 					try
 					{
 						var command = CommandParser.Parse(input);
-						command.Execute(); 
+						command.Execute();
 						if (command is IUndo)
 						{
 							AppInfo.UndoStack.Push(command);
 							AppInfo.RedoStack.Clear();
 						}
 					}
-					catch (Exception ex)
+					catch (TaskNotFoundException ex)
 					{
-						Console.WriteLine($"Ошибка: {ex.Message}");
+						Console.WriteLine($"Ошибка задачи: {ex.Message}");
+					}
+					catch (AuthenticationException ex)
+					{
+						Console.WriteLine($"Ошибка авторизации: {ex.Message}");
+					}
+					catch (InvalidCommandException ex)
+					{
+						Console.WriteLine($"Ошибка команды: {ex.Message}");
+					}
+					catch (InvalidArgumentException ex)
+					{
+						Console.WriteLine($"Ошибка аргумента: {ex.Message}");
+					}
+					catch (InvalidOperationException ex)
+					{
+						Console.WriteLine($"Ошибка операции: {ex.Message}");
+					}
+					catch (Exception) 
+					{
+						Console.WriteLine("Неожиданная ошибка.");
 					}
 				}
 			}
@@ -169,6 +201,7 @@ namespace TodoList
 			Console.WriteLine("Новый профиль успешно создан.");
 		}
 	}
+
 
 
 	public class InvalidCommandException : Exception
