@@ -1,35 +1,35 @@
 ﻿using System;
+using TodoList.Exceptions;
 
-namespace TodoList
+namespace TodoList;
+
+public class AddCommand : ICommand, IUndo
 {
-	public class AddCommand : ICommand, IUndo
+	public string? Text { get; set; }
+	public bool Multiline { get; set; }
+	public string? TodosFilePath { get; set; }
+	private TodoItem? _addedItem;
+
+	public void Execute()
 	{
-		public string? Text { get; set; }
-		public bool Multiline { get; set; }
-		public string? TodosFilePath { get; set; }
-		private TodoItem? _addedItem;
+		if (AppInfo.CurrentUserTodoList == null)
+			throw new AuthenticationException("Вы не авторизованы. Войдите в профиль, чтобы работать с задачами.");
 
-		public void Execute()
+		if (Multiline)
 		{
-			if (AppInfo.CurrentUserTodoList == null)
-				throw new AuthenticationException("Вы не авторизованы. Войдите в профиль, чтобы работать с задачами.");
-
-			if (Multiline)
-			{
-				AppInfo.CurrentUserTodoList.ReadFromConsoleAndAddMultiline();
-				return;
-			}
-
-			_addedItem = AppInfo.CurrentUserTodoList.Add(Text!);
+			AppInfo.CurrentUserTodoList.ReadFromConsoleAndAddMultiline();
+			return;
 		}
 
-		public void Unexecute()
+		_addedItem = AppInfo.CurrentUserTodoList.Add(Text!);
+	}
+
+	public void Unexecute()
+	{
+		if (_addedItem != null && AppInfo.CurrentUserTodoList != null && TodosFilePath != null)
 		{
-			if (_addedItem != null && AppInfo.CurrentUserTodoList != null && TodosFilePath != null)
-			{
-				AppInfo.CurrentUserTodoList.Remove(_addedItem.Id);
-				FileManager.SaveTodos(AppInfo.CurrentUserTodoList, TodosFilePath);
-			}
+			AppInfo.CurrentUserTodoList.Remove(_addedItem.Id);
+			FileManager.SaveTodos(AppInfo.CurrentUserTodoList, TodosFilePath);
 		}
 	}
 }

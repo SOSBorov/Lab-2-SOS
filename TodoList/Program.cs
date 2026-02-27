@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
+using TodoList.Exceptions; 
 namespace TodoList
 {
 	class Program
@@ -129,7 +129,7 @@ namespace TodoList
 					{
 						Console.WriteLine($"Ошибка операции: {ex.Message}");
 					}
-					catch (Exception) 
+					catch (Exception)
 					{
 						Console.WriteLine("Неожиданная ошибка.");
 					}
@@ -200,37 +200,5 @@ namespace TodoList
 			AppInfo.CurrentProfile = newProfile;
 			Console.WriteLine("Новый профиль успешно создан.");
 		}
-	}
-
-
-
-	public class InvalidCommandException : Exception
-	{
-		public InvalidCommandException(string message) : base(message) { }
-	}
-
-	public class InvalidArgumentException : Exception
-	{
-		public InvalidArgumentException(string message) : base(message) { }
-	}
-
-	public class TaskNotFoundException : Exception
-	{
-		public TaskNotFoundException(string message) : base(message) { }
-	}
-
-	public class ProfileNotFoundException : Exception
-	{
-		public ProfileNotFoundException(string message) : base(message) { }
-	}
-
-	public class AuthenticationException : Exception
-	{
-		public AuthenticationException(string message) : base(message) { }
-	}
-
-	public class DuplicateLoginException : Exception
-	{
-		public DuplicateLoginException(string message) : base(message) { }
 	}
 }
