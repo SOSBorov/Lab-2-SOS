@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text;
 using System.Collections.Generic;
-using TodoList.Exceptions; 
+using TodoList.Exceptions;
 
 namespace TodoList
 {
@@ -25,8 +25,9 @@ namespace TodoList
 				{ "profile", ParseProfileCommand },
 				{ "undo", args => new UndoCommand() },
 				{ "redo", args => new RedoCommand() },
-				{ "search", ParseSearchCommand }
-			};
+				{ "search", ParseSearchCommand },
+				{ "load", ParseLoadCommand } 
+            };
 		}
 
 		public static ICommand Parse(string inputString)
@@ -44,6 +45,26 @@ namespace TodoList
 			}
 
 			throw new InvalidCommandException($"Неизвестная команда '{commandName}'. Напишите 'help' для списка команд.");
+		}
+
+		private static ICommand ParseLoadCommand(string[] args)
+		{
+			if (args.Length != 2)
+			{
+				throw new InvalidArgumentException("Использование: load <количество_скачиваний> <размер_скачиваний>");
+			}
+
+			if (!int.TryParse(args[0], out int count))
+			{
+				throw new InvalidArgumentException($"Некорректное количество скачиваний: '{args[0]}'. Ожидается целое число.");
+			}
+
+			if (!int.TryParse(args[1], out int size))
+			{
+				throw new InvalidArgumentException($"Некорректный размер скачиваний: '{args[1]}'. Ожидается целое число.");
+			}
+
+			return new LoadCommand { DownloadCount = count, DownloadSize = size };
 		}
 
 		private static ICommand ParseSearchCommand(string[] args)
