@@ -26,8 +26,8 @@ namespace TodoList
 				{ "undo", args => new UndoCommand() },
 				{ "redo", args => new RedoCommand() },
 				{ "search", ParseSearchCommand },
-				{ "load", ParseLoadCommand } 
-            };
+				{ "load", ParseLoadCommand }
+			};
 		}
 
 		public static ICommand Parse(string inputString)
@@ -54,14 +54,14 @@ namespace TodoList
 				throw new InvalidArgumentException("Использование: load <количество_скачиваний> <размер_скачиваний>");
 			}
 
-			if (!int.TryParse(args[0], out int count))
+			if (!int.TryParse(args[0], out int count) || count <= 0)
 			{
-				throw new InvalidArgumentException($"Некорректное количество скачиваний: '{args[0]}'. Ожидается целое число.");
+				throw new InvalidArgumentException($"Некорректное количество скачиваний: '{args[0]}'. Ожидается целое положительное число.");
 			}
 
-			if (!int.TryParse(args[1], out int size))
+			if (!int.TryParse(args[1], out int size) || size <= 0)
 			{
-				throw new InvalidArgumentException($"Некорректный размер скачиваний: '{args[1]}'. Ожидается целое число.");
+				throw new InvalidArgumentException($"Некорректный размер скачиваний: '{args[1]}'. Ожидается целое положительное число.");
 			}
 
 			return new LoadCommand { DownloadCount = count, DownloadSize = size };
