@@ -9,6 +9,7 @@ namespace TodoList
 		public int DownloadCount { get; set; }
 		public int DownloadSize { get; set; }
 
+		// 1. Потокобезопасная работа с консолью: СОЗДАН ОБЪЕКТ ДЛЯ БЛОКИРОВКИ
 		private static readonly object _consoleLock = new();
 
 		public void Execute()
@@ -53,27 +54,16 @@ namespace TodoList
 			{
 				double percentage = DownloadSize > 0 ? (double)current / DownloadSize : 0;
 
+				// 2. Потокобезопасная работа с консолью: ИСПОЛЬЗУЕТСЯ БЛОК LOCK
 				lock (_consoleLock)
 				{
-					// --- НАЧАЛО ИЗМЕНЕНИЙ ---
-
-					// 1. Устанавливаем ширину бара в 20 делений
 					const int barWidth = 20;
-
-					// 2. Логика расчета заполненной части остается прежней, но с новой шириной
 					int filledChars = (int)(percentage * barWidth);
-
-					// 3. Создаем бар, используя символы '#' и '-'
 					string bar = $"[{new string('#', filledChars)}{new string('-', barWidth - filledChars)}]";
-
-					// 4. Формируем строку вывода в новом формате
 					string line = $"Загрузка {index + 1,-2}: {bar} {(int)(percentage * 100),3}%";
 
-					// Устанавливаем курсор и выводим отформатированную строку
 					Console.SetCursorPosition(0, startRow + index);
 					Console.Write(line.PadRight(Console.WindowWidth - 1));
-
-					// --- КОНЕЦ ИЗМЕНЕНИЙ ---
 				}
 
 				await Task.Delay(random.Next(20, 100));
