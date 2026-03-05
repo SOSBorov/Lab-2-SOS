@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using TodoList.Exceptions;
 
 namespace TodoList
 {
@@ -19,42 +17,38 @@ namespace TodoList
 
 		private async Task RunAsync()
 		{
-			if (DownloadCount <= 0 || DownloadSize <= 0)
-			{
-				throw new InvalidArgumentException("Количество и размер скачиваний должны быть положительными числами.");
-			}
-
-			Console.Clear();
 			Console.CursorVisible = false;
+			int startRow = Console.CursorTop;
+
+			for (int i = 0; i < DownloadCount; i++)
+			{
+				Console.WriteLine();
+			}
 
 			try
 			{
 				var progress = new int[DownloadCount];
-				var tasks = new List<Task>();
 				var random = new Random();
+				var tasks = new List<Task>();
 
 				for (int i = 0; i < DownloadCount; i++)
 				{
-					int downloadIndex = i; 
-					tasks.Add(Task.Run(() =>
-					{
-						for (int p = 0; p <= DownloadSize; p++)
-						{
-							progress[downloadIndex] = p;
-							Thread.Sleep(random.Next(20, 100));
-						}
-					}));
+					tasks.Add(DownloadAsync(i, progress, random));
 				}
 
-				while (tasks.Any(t => !t.IsCompleted))
+				var allDownloadsTask = Task.WhenAll(tasks);
+
+				while (!allDownloadsTask.IsCompleted)
 				{
-					DrawAllProgressBars(progress);
-					await Task.Delay(100); 
+					DrawAllProgressBars(progress, startRow);
+					await Task.Delay(100);
 				}
 
-				DrawAllProgressBars(progress);
+				await allDownloadsTask;
 
-				Console.SetCursorPosition(0, DownloadCount);
+				DrawAllProgressBars(progress, startRow);
+
+				Console.SetCursorPosition(0, startRow + DownloadCount);
 				Console.WriteLine("\nВсе загрузки завершены.");
 			}
 			finally
@@ -63,12 +57,20 @@ namespace TodoList
 			}
 		}
 
-		private void DrawAllProgressBars(int[] progress)
+		private async Task DownloadAsync(int index, int[] progressArray, Random random)
 		{
-			Console.SetCursorPosition(0, 0);
+			for (int p = 0; p <= DownloadSize; p++)
+			{
+				progressArray[index] = p;
+				await Task.Delay(random.Next(20, 100));
+			}
+		}
 
+		private void DrawAllProgressBars(int[] progress, int startRow)
+		{
 			for (int i = 0; i < DownloadCount; i++)
 			{
+				Console.SetCursorPosition(0, startRow + i);
 				DrawProgressBar(i + 1, progress[i], DownloadSize);
 			}
 		}
@@ -81,7 +83,7 @@ namespace TodoList
 
 			string bar = $"[{new string('█', filledChars)}{new string('-', barWidth - filledChars)}]";
 
-			Console.WriteLine($"Загрузка {index,-2}: {bar} {current,3}/{total} ({percentage:P0}) ".PadRight(Console.WindowWidth - 1));
+			Console.Write($"Загрузка {index,-2}: {bar} {current,3}/{total} ({percentage:P0}) ".PadRight(Console.WindowWidth - 1));
 		}
 	}
 }
