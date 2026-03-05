@@ -20,6 +20,7 @@ namespace TodoList
 		{
 			Console.CursorVisible = false;
 			int startRow = Console.CursorTop;
+
 			for (int i = 0; i < DownloadCount; i++)
 			{
 				Console.WriteLine();
@@ -54,12 +55,25 @@ namespace TodoList
 
 				lock (_consoleLock)
 				{
-					const int barWidth = 50;
-					int filledChars = (int)(percentage * barWidth);
-					string bar = $"[{new string('█', filledChars)}{new string('-', barWidth - filledChars)}]";
+					// --- НАЧАЛО ИЗМЕНЕНИЙ ---
 
+					// 1. Устанавливаем ширину бара в 20 делений
+					const int barWidth = 20;
+
+					// 2. Логика расчета заполненной части остается прежней, но с новой шириной
+					int filledChars = (int)(percentage * barWidth);
+
+					// 3. Создаем бар, используя символы '#' и '-'
+					string bar = $"[{new string('#', filledChars)}{new string('-', barWidth - filledChars)}]";
+
+					// 4. Формируем строку вывода в новом формате
+					string line = $"Загрузка {index + 1,-2}: {bar} {(int)(percentage * 100),3}%";
+
+					// Устанавливаем курсор и выводим отформатированную строку
 					Console.SetCursorPosition(0, startRow + index);
-					Console.Write($"Загрузка {index + 1,-2}: {bar} {current,3}/{DownloadSize} ({percentage:P0}) ".PadRight(Console.WindowWidth - 1));
+					Console.Write(line.PadRight(Console.WindowWidth - 1));
+
+					// --- КОНЕЦ ИЗМЕНЕНИЙ ---
 				}
 
 				await Task.Delay(random.Next(20, 100));
