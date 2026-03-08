@@ -34,7 +34,9 @@ namespace TodoList
 		{
 			var newItem = new TodoItem { Id = _nextId++, Text = text };
 			_items.Add(newItem);
+
 			OnTodoAdded?.Invoke(newItem);
+
 			return newItem;
 		}
 
@@ -47,7 +49,7 @@ namespace TodoList
 			}
 		}
 
-		public void ReadFromConsoleAndAddMultiline()
+		public TodoItem? ReadFromConsoleAndAddMultiline()
 		{
 			Console.WriteLine("Введите задачу (введите !end чтобы завершить ввод):");
 			string line;
@@ -57,15 +59,15 @@ namespace TodoList
 				builder.AppendLine(line);
 			}
 
-			if (builder.Length > 0)
+			var text = builder.ToString().Trim();
+			if (string.IsNullOrWhiteSpace(text))
 			{
-				Add(builder.ToString().Trim());
-				Console.WriteLine("Многострочная задача добавлена.");
+				Console.WriteLine("Задача не была добавлена, так как ввод был пустым.");
+				return null;
 			}
-			else
-			{
-				Console.WriteLine("Многострочная задача не была добавлена, так как ввод был пустым.");
-			}
+
+			Console.WriteLine("Многострочная задача добавлена.");
+			return Add(text); 
 		}
 
 		public void Remove(int id)

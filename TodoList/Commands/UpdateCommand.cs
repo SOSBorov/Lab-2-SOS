@@ -1,36 +1,35 @@
 ﻿using System;
 using TodoList.Exceptions;
 
-namespace TodoList;
-
-public class UpdateCommand : ICommand, IUndo
+namespace TodoList
 {
-	public int Id { get; set; }
-	public string NewText { get; set; } = "";
-	public string? TodosFilePath { get; set; }
-	private string? _previousText;
-
-	public void Execute()
+	public class UpdateCommand : ICommand, IUndo
 	{
-		if (AppInfo.CurrentUserTodoList == null)
-			throw new AuthenticationException("Вы не авторизованы. Войдите в профиль, чтобы работать с задачами.");
+		public int Id { get; set; }
+		public string NewText { get; set; } = "";
+		private string? _previousText;
 
-		var itemToUpdate = AppInfo.CurrentUserTodoList.GetById(Id);
-
-		if (itemToUpdate != null)
+		public void Execute()
 		{
-			_previousText = itemToUpdate.Text;
+			if (AppInfo.CurrentUserTodoList == null)
+				throw new AuthenticationException("Вы не авторизованы. Войдите в профиль, чтобы работать с задачами.");
+
+			var itemToUpdate = AppInfo.CurrentUserTodoList.GetById(Id);
+
+			if (itemToUpdate != null)
+			{
+				_previousText = itemToUpdate.Text;
+				AppInfo.CurrentUserTodoList.Update(Id, NewText);
+			}
 		}
 
-		AppInfo.CurrentUserTodoList.Update(Id, NewText);
-	}
-
-	public void Unexecute()
-	{
-		if (_previousText != null && AppInfo.CurrentUserTodoList != null && TodosFilePath != null)
+		public void Unexecute()
 		{
-			AppInfo.CurrentUserTodoList.Update(Id, _previousText);
-			FileManager.SaveTodos(AppInfo.CurrentUserTodoList, TodosFilePath);
+			if (_previousText != null && AppInfo.CurrentProfile != null && AppInfo.CurrentUserTodoList != null)
+			{
+				AppInfo.CurrentUserTodoList.Update(Id, _previousText);
+				AppInfo.DataStorage.SaveTodos(AppInfo.CurrentProfile.Id, AppInfo.CurrentUserTodoList.GetAllItems());
+			}
 		}
 	}
 }
