@@ -13,11 +13,14 @@ namespace TodoList
 		public event Action<TodoItem>? OnTodoUpdated;
 		public event Action<TodoItem>? OnStatusChanged;
 
-		private readonly List<TodoItem> _items = new();
+		private readonly List<TodoItem> _items;
 		private int _nextId = 1;
 		private const int TRUNCATE_LENGTH = 70;
 
-		public TodoList() { }
+		public TodoList()
+		{
+			_items = new List<TodoItem>();
+		}
 
 		public TodoList(List<TodoItem> items)
 		{
@@ -34,9 +37,7 @@ namespace TodoList
 		{
 			var newItem = new TodoItem { Id = _nextId++, Text = text };
 			_items.Add(newItem);
-
 			OnTodoAdded?.Invoke(newItem);
-
 			return newItem;
 		}
 
@@ -46,15 +47,16 @@ namespace TodoList
 			{
 				_items.Add(item);
 				_items.Sort((a, b) => a.Id.CompareTo(b.Id));
+				OnTodoAdded?.Invoke(item);
 			}
 		}
 
 		public TodoItem? ReadFromConsoleAndAddMultiline()
 		{
 			Console.WriteLine("Введите задачу (введите !end чтобы завершить ввод):");
-			string line;
 			var builder = new StringBuilder();
-			while ((line = Console.ReadLine() ?? "") != "!end")
+			string? line;
+			while ((line = Console.ReadLine())?.ToLower() != "!end")
 			{
 				builder.AppendLine(line);
 			}
@@ -66,8 +68,7 @@ namespace TodoList
 				return null;
 			}
 
-			Console.WriteLine("Многострочная задача добавлена.");
-			return Add(text); 
+			return Add(text);
 		}
 
 		public void Remove(int id)
@@ -76,7 +77,6 @@ namespace TodoList
 			if (item != null)
 			{
 				_items.Remove(item);
-				Console.WriteLine("Задача удалена.");
 				OnTodoDeleted?.Invoke(item);
 			}
 			else
@@ -92,7 +92,6 @@ namespace TodoList
 			{
 				item.Status = newStatus;
 				item.LastUpdated = DateTime.Now;
-				Console.WriteLine($"Статус задачи #{id} изменен на '{newStatus}'.");
 				OnStatusChanged?.Invoke(item);
 			}
 			else
@@ -108,7 +107,6 @@ namespace TodoList
 			{
 				item.Text = newText;
 				item.LastUpdated = DateTime.Now;
-				Console.WriteLine("Задача обновлена.");
 				OnTodoUpdated?.Invoke(item);
 			}
 			else
@@ -117,16 +115,26 @@ namespace TodoList
 			}
 		}
 
+		public List<TodoItem> GetAllItems() => new List<TodoItem>(_items);
+		public TodoItem? GetById(int id) => _items.FirstOrDefault(item => item.Id == id);
 		public void ViewCustom(bool showIndex, bool showStatus, bool showUpdateDate, bool showAll)
 		{
-			if (_items.Count == 0)
+			if (Count == 0)
 			{
 				Console.WriteLine("Список задач пуст.");
 				return;
 			}
 
+			bool noFlags = !showIndex && !showStatus && !showUpdateDate && !showAll;
+
 			foreach (var item in _items)
 			{
+				if (noFlags)
+				{
+					Console.WriteLine(item.Text);
+					continue;
+				}
+
 				var prefixBuilder = new StringBuilder();
 				if (showAll || showIndex) prefixBuilder.Append($"[{item.Id}] ");
 				if (showAll || showStatus) prefixBuilder.Append($"({item.Status}) ");
@@ -135,8 +143,7 @@ namespace TodoList
 				string textToDisplay;
 				if (showAll)
 				{
-					int availableWidth = Console.WindowWidth - prefix.Length - 1;
-					if (availableWidth < 10) availableWidth = 10;
+					int availableWidth = Console.WindowWidth > prefix.Length + 1 ? Console.WindowWidth - prefix.Length - 1 : 10;
 					string padding = new string(' ', prefix.Length);
 					textToDisplay = WrapText(item.Text, availableWidth, padding);
 				}
@@ -145,14 +152,9 @@ namespace TodoList
 					string firstLine = item.Text.Split('\n').FirstOrDefault() ?? string.Empty;
 					bool isMultiline = item.Text.Contains('\n') && !string.IsNullOrWhiteSpace(item.Text.Replace(firstLine, ""));
 
-					if (firstLine.Length > TRUNCATE_LENGTH)
-					{
-						textToDisplay = firstLine.Substring(0, TRUNCATE_LENGTH) + "...";
-					}
-					else
-					{
-						textToDisplay = firstLine;
-					}
+					textToDisplay = firstLine.Length > TRUNCATE_LENGTH
+						? firstLine.Substring(0, TRUNCATE_LENGTH) + "..."
+						: firstLine;
 
 					if (isMultiline)
 					{
@@ -162,29 +164,27 @@ namespace TodoList
 
 				Console.Write(prefix);
 				Console.Write(textToDisplay);
-
 				if (showAll || showUpdateDate) Console.Write($" (обновлено {item.LastUpdated:dd.MM.yyyy HH:mm})");
-
 				Console.WriteLine();
 			}
 		}
 
 		private string WrapText(string text, int maxWidth, string padding)
 		{
-			if (string.IsNullOrEmpty(text)) return string.Empty;
+			if (string.IsNullOrEmpty(text) || maxWidth <= 0) return string.Empty;
 
 			var resultBuilder = new StringBuilder();
 			string[] lines = text.Split('\n');
 
 			for (int i = 0; i < lines.Length; i++)
 			{
-				string line = lines[i];
+				string line = lines[i].TrimEnd();
 				var words = line.Split(' ');
 				var currentLine = new StringBuilder();
 
 				foreach (var word in words)
 				{
-					if (currentLine.Length + word.Length + 1 > maxWidth)
+					if (currentLine.Length > 0 && currentLine.Length + word.Length + 1 > maxWidth)
 					{
 						resultBuilder.AppendLine(currentLine.ToString().TrimEnd());
 						currentLine.Clear().Append(padding);
@@ -200,16 +200,6 @@ namespace TodoList
 				}
 			}
 			return resultBuilder.ToString();
-		}
-
-		public List<TodoItem> GetAllItems()
-		{
-			return new List<TodoItem>(_items);
-		}
-
-		public TodoItem? GetById(int id)
-		{
-			return _items.FirstOrDefault(item => item.Id == id);
 		}
 	}
 }

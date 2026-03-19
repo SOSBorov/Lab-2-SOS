@@ -1,20 +1,25 @@
 ﻿using System;
 using TodoList.Exceptions;
 
-namespace TodoList;
-
-public class ViewCommand : ICommand
+namespace TodoList
 {
-	public bool ShowIndex { get; set; }
-	public bool ShowStatus { get; set; }
-	public bool ShowUpdateDate { get; set; }
-	public bool ShowAll { get; set; }
-
-	public void Execute()
+	public class ViewCommand : ICommand
 	{
-		if (AppInfo.CurrentUserTodoList == null)
-			throw new AuthenticationException("Вы не авторизованы. Войдите в профиль, чтобы работать с задачами.");
+		public bool ShowIndex { get; set; }
+		public bool ShowStatus { get; set; }
+		public bool ShowUpdateDate { get; set; }
+		public bool ShowAll { get; set; }
 
-		AppInfo.CurrentUserTodoList.ViewCustom(ShowIndex, ShowStatus, ShowUpdateDate, ShowAll);
+		public void Execute()
+		{
+			if (AppInfo.CurrentUserTodoList == null)
+			{
+				throw new AuthenticationException("Список задач не найден. Пожалуйста, войдите в профиль.");
+			}
+
+			AppInfo.CurrentUserTodoList.ViewCustom(ShowIndex, ShowStatus, ShowUpdateDate, ShowAll);
+		}
+
+		public void Unexecute() { }
 	}
 }

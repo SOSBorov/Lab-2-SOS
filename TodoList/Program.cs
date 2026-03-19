@@ -45,7 +45,7 @@ namespace TodoList
 				catch (DataStorageException ex)
 				{
 					Console.WriteLine($"Ошибка при загрузке задач: {ex.Message}");
-					AppInfo.UserTodos[AppInfo.CurrentProfile.Id] = new TodoList();
+					AppInfo.UserTodos[AppInfo.CurrentProfile.Id] = new TodoList(new List<TodoItem>());
 				}
 
 				Console.WriteLine($"\nДобро пожаловать, {AppInfo.CurrentProfile.GetInfo()}!");
@@ -129,6 +129,7 @@ namespace TodoList
 		{
 			Console.Write("Введите новый логин: ");
 			string login = Console.ReadLine() ?? "";
+			if (string.IsNullOrWhiteSpace(login)) throw new InvalidArgumentException("Логин не должен быть пустым.");
 			if (AppInfo.AllProfiles.Any(p => p.Login.Equals(login)))
 				throw new AuthenticationException("Этот логин уже занят.");
 

@@ -17,23 +17,27 @@ namespace TodoList
 			if (Multiline)
 			{
 				_addedItem = AppInfo.CurrentUserTodoList.ReadFromConsoleAndAddMultiline();
-				return;
 			}
-
-			if (string.IsNullOrWhiteSpace(Text))
+			else
 			{
-				throw new InvalidArgumentException("Текст задачи не может быть пустым.");
+				if (string.IsNullOrWhiteSpace(Text))
+				{
+					throw new InvalidArgumentException("Текст задачи не может быть пустым.");
+				}
+				_addedItem = AppInfo.CurrentUserTodoList.Add(Text);
 			}
 
-			_addedItem = AppInfo.CurrentUserTodoList.Add(Text);
+			if (_addedItem != null)
+			{
+				Console.WriteLine("Задача успешно добавлена!");
+			}
 		}
 
 		public void Unexecute()
 		{
-			if (_addedItem != null && AppInfo.CurrentProfile != null && AppInfo.CurrentUserTodoList != null)
+			if (_addedItem != null && AppInfo.CurrentUserTodoList != null)
 			{
 				AppInfo.CurrentUserTodoList.Remove(_addedItem.Id);
-				AppInfo.DataStorage.SaveTodos(AppInfo.CurrentProfile.Id, AppInfo.CurrentUserTodoList.GetAllItems());
 			}
 		}
 	}

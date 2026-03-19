@@ -15,20 +15,21 @@ namespace TodoList
 				throw new AuthenticationException("Вы не авторизованы. Войдите в профиль, чтобы работать с задачами.");
 
 			var itemToUpdate = AppInfo.CurrentUserTodoList.GetById(Id);
+			if (itemToUpdate == null)
+				throw new TaskNotFoundException($"Задача с ID '{Id}' не найдена.");
 
-			if (itemToUpdate != null)
-			{
-				_previousText = itemToUpdate.Text;
-				AppInfo.CurrentUserTodoList.Update(Id, NewText);
-			}
+			_previousText = itemToUpdate.Text;
+
+			AppInfo.CurrentUserTodoList.Update(Id, NewText);
+
+			Console.WriteLine("Задача обновлена.");
 		}
 
 		public void Unexecute()
 		{
-			if (_previousText != null && AppInfo.CurrentProfile != null && AppInfo.CurrentUserTodoList != null)
+			if (_previousText != null && AppInfo.CurrentUserTodoList != null)
 			{
 				AppInfo.CurrentUserTodoList.Update(Id, _previousText);
-				AppInfo.DataStorage.SaveTodos(AppInfo.CurrentProfile.Id, AppInfo.CurrentUserTodoList.GetAllItems());
 			}
 		}
 	}

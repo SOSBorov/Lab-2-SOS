@@ -14,15 +14,17 @@ namespace TodoList
 				throw new AuthenticationException("Вы не авторизованы. Войдите в профиль, чтобы работать с задачами.");
 
 			_removedItem = AppInfo.CurrentUserTodoList.GetById(Id);
+
 			AppInfo.CurrentUserTodoList.Remove(Id);
+
+			Console.WriteLine("Задача удалена.");
 		}
 
 		public void Unexecute()
 		{
-			if (_removedItem != null && AppInfo.CurrentProfile != null && AppInfo.CurrentUserTodoList != null)
+			if (_removedItem != null && AppInfo.CurrentUserTodoList != null)
 			{
 				AppInfo.CurrentUserTodoList.AddExistingItem(_removedItem);
-				AppInfo.DataStorage.SaveTodos(AppInfo.CurrentProfile.Id, AppInfo.CurrentUserTodoList.GetAllItems());
 			}
 		}
 	}
