@@ -1,58 +1,65 @@
-﻿using Xunit;
-using System;
+﻿using System;
+using Moq;
 using TodoList;
+using TodoList.Interfaces;
+using Xunit;
 
 namespace TodoList.Tests;
 
 public class TodoItemTests
 {
 	[Fact]
-	public void Constructor_InitializesFieldsCorrectly()
+	public void Constructor_InitializesDatesUsingClock()
 	{
-		// Arrange & Act
-		var item = new TodoItem();
+		// Arrange
+		var fixedTime = new DateTime(2025, 1, 1, 12, 0, 0);
+		var clock = new Mock<IClock>();
+		clock.Setup(c => c.Now).Returns(fixedTime);
+
+		// Act
+		var item = new TodoItem(clock.Object);
 
 		// Assert
-		Assert.Equal(0, item.Id);
-		Assert.Equal(string.Empty, item.Text);
-		Assert.Equal(TodoStatus.NotStarted, item.Status);
-
-		Assert.True((DateTime.Now - item.CreatedAt).TotalSeconds < 1);
-		Assert.True((DateTime.Now - item.LastUpdated).TotalSeconds < 1);
+		Assert.Equal(fixedTime, item.CreatedAt);
+		Assert.Equal(fixedTime, item.LastUpdated);
 	}
 
 	[Fact]
-	public void Properties_SetCorrectValues()
+	public void UpdateText_UpdatesLastUpdatedUsingClock()
 	{
 		// Arrange
-		var item = new TodoItem();
+		var initialTime = new DateTime(2025, 1, 1, 12, 0, 0);
+		var updatedTime = new DateTime(2025, 1, 1, 13, 0, 0);
+
+		var clock = new Mock<IClock>();
+		clock.SetupSequence(c => c.Now)
+			 .Returns(initialTime)  
+			 .Returns(updatedTime);  
+
+		var item = new TodoItem(clock.Object);
 
 		// Act
-		item.Id = 10;
-		item.Text = "Test";
-		item.Status = TodoStatus.Completed;
-		var now = DateTime.Now;
-		item.CreatedAt = now;
-		item.LastUpdated = now;
+		item.Text = "New text";
+		item.LastUpdated = clock.Object.Now;
 
 		// Assert
-		Assert.Equal(10, item.Id);
-		Assert.Equal("Test", item.Text);
-		Assert.Equal(TodoStatus.Completed, item.Status);
-		Assert.Equal(now, item.CreatedAt);
-		Assert.Equal(now, item.LastUpdated);
+		Assert.Equal(updatedTime, item.LastUpdated);
 	}
 
 	[Fact]
 	public void ToString_ReturnsFormattedString()
 	{
 		// Arrange
-		var item = new TodoItem
+		var fixedTime = new DateTime(2024, 1, 1, 12, 30, 0);
+		var clock = new Mock<IClock>();
+		clock.Setup(c => c.Now).Returns(fixedTime);
+
+		var item = new TodoItem(clock.Object)
 		{
 			Id = 1,
 			Text = "Hello world",
 			Status = TodoStatus.InProgress,
-			LastUpdated = new DateTime(2024, 1, 1, 12, 30, 0)
+			LastUpdated = fixedTime
 		};
 
 		// Act

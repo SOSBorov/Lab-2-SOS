@@ -4,7 +4,7 @@ using System.Text;
 
 namespace TodoList.Interfaces;
 
-internal class IClock
+public interface IClock
 {
 	DateTime Now { get; }
 }
