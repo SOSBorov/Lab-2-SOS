@@ -228,6 +228,6 @@ public class TodoListTests
 
 		// Assert
 		Assert.Equal(2, items.Count);
-		Assert.NotSame(items, list.GetAllItems());
+		Assert.NotSame(items, list.GetAllItems()); 
 	}
 }

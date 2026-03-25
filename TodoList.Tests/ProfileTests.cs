@@ -83,7 +83,7 @@ public class ProfileTests
 		string info = profile.GetInfo();
 
 		// Assert
-		Assert.Contains("A ", info);
+		Assert.Contains("A ", info); 
 		Assert.Contains("Возраст:", info);
 	}
 }
