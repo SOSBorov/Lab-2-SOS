@@ -35,10 +35,34 @@ namespace TodoList
 
 		public TodoItem Add(string text)
 		{
-			var newItem = new TodoItem { Id = _nextId++, Text = text };
+			var newItem = new TodoItem
+			{
+				Id = _nextId++,
+				Text = text,
+				LastUpdated = DateTime.Now
+			};
+
 			_items.Add(newItem);
 			OnTodoAdded?.Invoke(newItem);
 			return newItem;
+		}
+
+		public TodoItem ReadFromConsoleAndAddMultiline()
+		{
+			Console.WriteLine("Введите текст задачи. Пустая строка — завершение ввода:");
+
+			var lines = new List<string>();
+			while (true)
+			{
+				string? line = Console.ReadLine();
+				if (string.IsNullOrWhiteSpace(line))
+					break;
+
+				lines.Add(line);
+			}
+
+			string fullText = string.Join("\n", lines);
+			return Add(fullText);
 		}
 
 		internal void AddExistingItem(TodoItem item)
@@ -49,26 +73,6 @@ namespace TodoList
 				_items.Sort((a, b) => a.Id.CompareTo(b.Id));
 				OnTodoAdded?.Invoke(item);
 			}
-		}
-
-		public TodoItem? ReadFromConsoleAndAddMultiline()
-		{
-			Console.WriteLine("Введите задачу (введите !end чтобы завершить ввод):");
-			var builder = new StringBuilder();
-			string? line;
-			while ((line = Console.ReadLine())?.ToLower() != "!end")
-			{
-				builder.AppendLine(line);
-			}
-
-			var text = builder.ToString().Trim();
-			if (string.IsNullOrWhiteSpace(text))
-			{
-				Console.WriteLine("Задача не была добавлена, так как ввод был пустым.");
-				return null;
-			}
-
-			return Add(text);
 		}
 
 		public void Remove(int id)
@@ -92,6 +96,7 @@ namespace TodoList
 			{
 				item.Status = newStatus;
 				item.LastUpdated = DateTime.Now;
+
 				OnStatusChanged?.Invoke(item);
 			}
 			else
@@ -105,8 +110,7 @@ namespace TodoList
 			var item = _items.FirstOrDefault(i => i.Id == id);
 			if (item != null)
 			{
-				item.Text = newText;
-				item.LastUpdated = DateTime.Now;
+				item.UpdateText(newText);
 				OnTodoUpdated?.Invoke(item);
 			}
 			else
@@ -116,7 +120,9 @@ namespace TodoList
 		}
 
 		public List<TodoItem> GetAllItems() => new List<TodoItem>(_items);
+
 		public TodoItem? GetById(int id) => _items.FirstOrDefault(item => item.Id == id);
+
 		public void ViewCustom(bool showIndex, bool showStatus, bool showUpdateDate, bool showAll)
 		{
 			if (Count == 0)
@@ -143,14 +149,18 @@ namespace TodoList
 				string textToDisplay;
 				if (showAll)
 				{
-					int availableWidth = Console.WindowWidth > prefix.Length + 1 ? Console.WindowWidth - prefix.Length - 1 : 10;
+					int availableWidth = Console.WindowWidth > prefix.Length + 1
+						? Console.WindowWidth - prefix.Length - 1
+						: 10;
+
 					string padding = new string(' ', prefix.Length);
 					textToDisplay = WrapText(item.Text, availableWidth, padding);
 				}
 				else
 				{
 					string firstLine = item.Text.Split('\n').FirstOrDefault() ?? string.Empty;
-					bool isMultiline = item.Text.Contains('\n') && !string.IsNullOrWhiteSpace(item.Text.Replace(firstLine, ""));
+					bool isMultiline = item.Text.Contains('\n') &&
+									   !string.IsNullOrWhiteSpace(item.Text.Replace(firstLine, ""));
 
 					textToDisplay = firstLine.Length > TRUNCATE_LENGTH
 						? firstLine.Substring(0, TRUNCATE_LENGTH) + "..."
@@ -164,7 +174,8 @@ namespace TodoList
 
 				Console.Write(prefix);
 				Console.Write(textToDisplay);
-				if (showAll || showUpdateDate) Console.Write($" (обновлено {item.LastUpdated:dd.MM.yyyy HH:mm})");
+				if (showAll || showUpdateDate)
+					Console.Write($" (обновлено {item.LastUpdated:dd.MM.yyyy HH:mm})");
 				Console.WriteLine();
 			}
 		}
@@ -199,6 +210,7 @@ namespace TodoList
 					resultBuilder.Append(padding);
 				}
 			}
+
 			return resultBuilder.ToString();
 		}
 	}

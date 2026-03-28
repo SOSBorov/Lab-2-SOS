@@ -33,16 +33,17 @@ public class TodoItemTests
 
 		var clock = new Mock<IClock>();
 		clock.SetupSequence(c => c.Now)
-			 .Returns(initialTime)  
-			 .Returns(updatedTime);  
+			 .Returns(initialTime)
+			 .Returns(initialTime)
+			 .Returns(updatedTime);
 
 		var item = new TodoItem(clock.Object);
 
 		// Act
-		item.Text = "New text";
-		item.LastUpdated = clock.Object.Now;
+		item.UpdateText("New text");
 
 		// Assert
+		Assert.Equal("New text", item.Text);
 		Assert.Equal(updatedTime, item.LastUpdated);
 	}
 
