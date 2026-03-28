@@ -26,9 +26,35 @@ namespace TodoList
 				{ "undo", args => new UndoCommand() },
 				{ "redo", args => new RedoCommand() },
 				{ "search", ParseSearchCommand },
-				{ "load", ParseLoadCommand }
+				{ "load", ParseLoadCommand },
+				{ "sync", ParseSyncCommand }
 			};
 		}
+
+		private static ICommand ParseSyncCommand(string[] args)
+		{
+			var cmd = new SyncCommand();
+
+			foreach (var arg in args.Select(a => a.ToLowerInvariant()))
+			{
+				switch (arg)
+				{
+					case "--push":
+						cmd.Push = true;
+						break;
+
+					case "--pull":
+						cmd.Pull = true;
+						break;
+
+					default:
+						throw new InvalidArgumentException($"Неизвестный флаг: {arg}");
+				}
+			}
+
+			return cmd;
+		}
+
 
 		public static ICommand Parse(string inputString)
 		{
