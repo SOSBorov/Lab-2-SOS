@@ -10,11 +10,7 @@ namespace TodoList
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Работу выполнили Vasilevich и Garmash");
-
-			byte[] key = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16 };
-			byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16 };
-
-			AppInfo.DataStorage = new ApiDataStorage("http://localhost:5000/", key, iv);
+			ConfigureDataStorage();
 
 			try
 			{
@@ -54,6 +50,41 @@ namespace TodoList
 				Console.WriteLine("Напишите 'help' для списка команд или 'exit' для выхода.");
 
 				CommandLoop();
+			}
+		}
+
+		private static void ConfigureDataStorage()
+		{
+			while (true)
+			{
+				Console.Write("Куда сохранять данные? Файлы [1](FileManager) или сервер [2](ApiDataStorage): ");
+				string? storageChoice = Console.ReadLine()?.Trim();
+
+				if (storageChoice == "1")
+				{
+					AppInfo.DataStorage = new FileManager("Data");
+					Console.WriteLine("Выбрано хранение в файлах.");
+					return;
+				}
+
+				if (storageChoice == "2")
+				{
+					byte[] key = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16 };
+					byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16 };
+
+					Console.Write("Введите адрес API сервера (Enter для http://localhost:5000/): ");
+					string? baseUrl = Console.ReadLine();
+					if (string.IsNullOrWhiteSpace(baseUrl))
+					{
+						baseUrl = "http://localhost:5000/";
+					}
+
+					AppInfo.DataStorage = new ApiDataStorage(baseUrl, key, iv);
+					Console.WriteLine($"Выбрано хранение на сервере: {baseUrl}");
+					return;
+				}
+
+				Console.WriteLine("Некорректный выбор. Введите 1 или 2.");
 			}
 		}
 
