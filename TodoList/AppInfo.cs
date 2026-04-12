@@ -5,7 +5,8 @@ namespace TodoList
 {
 	public static class AppInfo
 	{
-		public static IDataStorage DataStorage { get; set; } = null!;
+		public static TodoRepository TodoRepository { get; } = new();
+		public static ProfileRepository ProfileRepository { get; } = new();
 
 		public static Dictionary<Guid, TodoList> UserTodos { get; set; } = new();
 		public static List<Profile> AllProfiles { get; set; } = new();
@@ -22,6 +23,7 @@ namespace TodoList
 				{
 					return null;
 				}
+
 				return UserTodos[CurrentProfile.Id];
 			}
 		}

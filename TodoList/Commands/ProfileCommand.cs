@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
 using TodoList.Exceptions;
 
 namespace TodoList
@@ -40,14 +38,15 @@ namespace TodoList
 				Console.Write("Введите пароль: ");
 				string? password = Console.ReadLine();
 
-				var newProfile = AppInfo.AllProfiles.FirstOrDefault(p => p.Login.Equals(login) && p.Password.Equals(password));
+				var newProfile = AppInfo.ProfileRepository.GetByCredentials(login ?? string.Empty, password ?? string.Empty);
 
 				if (newProfile != null)
 				{
 					AppInfo.CurrentProfile = newProfile;
+					AppInfo.AllProfiles = AppInfo.ProfileRepository.GetAll();
 
-					var userTodos = AppInfo.DataStorage.LoadTodos(AppInfo.CurrentProfile.Id);
-					AppInfo.UserTodos[AppInfo.CurrentProfile.Id] = new TodoList(userTodos.ToList());
+					var userTodos = AppInfo.TodoRepository.GetAllByProfile(AppInfo.CurrentProfile.Id);
+					AppInfo.UserTodos[AppInfo.CurrentProfile.Id] = new TodoList(userTodos);
 
 					AppInfo.UndoStack.Clear();
 					AppInfo.RedoStack.Clear();

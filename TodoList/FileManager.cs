@@ -9,6 +9,7 @@ using TodoList.Exceptions;
 
 namespace TodoList
 {
+	[Obsolete("FileManager устарел. Для хранения задач и профилей используйте SQLite через репозитории.")]
 	public class FileManager : IDataStorage
 	{
 		private readonly string _dataDirectory;

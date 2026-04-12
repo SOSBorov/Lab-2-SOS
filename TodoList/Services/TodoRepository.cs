@@ -11,7 +11,6 @@ namespace TodoList
 		public List<TodoItem> GetAll()
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
 
 			return context.Todos
 				.AsNoTracking()
@@ -22,7 +21,6 @@ namespace TodoList
 		public List<TodoItem> GetAllByProfile(Guid profileId)
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
 
 			return context.Todos
 				.AsNoTracking()
@@ -34,7 +32,6 @@ namespace TodoList
 		public TodoItem? GetById(int id)
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
 
 			return context.Todos
 				.AsNoTracking()
@@ -44,7 +41,13 @@ namespace TodoList
 		public void Add(TodoItem item)
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
+
+			if (context.Todos.Any(todo => todo.Id == item.Id))
+			{
+				item.Id = context.Todos.Any()
+					? context.Todos.Max(todo => todo.Id) + 1
+					: 1;
+			}
 
 			context.Todos.Add(item);
 			context.SaveChanges();
@@ -53,7 +56,6 @@ namespace TodoList
 		public void Update(TodoItem item)
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
 
 			var existingItem = context.Todos.FirstOrDefault(todo => todo.Id == item.Id);
 			if (existingItem == null)
@@ -73,7 +75,6 @@ namespace TodoList
 		public void Delete(int id)
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
 
 			var existingItem = context.Todos.FirstOrDefault(todo => todo.Id == id);
 			if (existingItem == null)
@@ -88,7 +89,6 @@ namespace TodoList
 		public void SetStatus(int id, TodoStatus status)
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
 
 			var existingItem = context.Todos.FirstOrDefault(todo => todo.Id == id);
 			if (existingItem == null)

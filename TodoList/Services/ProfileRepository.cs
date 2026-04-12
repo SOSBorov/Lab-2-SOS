@@ -11,7 +11,6 @@ namespace TodoList
 		public List<Profile> GetAll()
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
 
 			return context.Profiles
 				.AsNoTracking()
@@ -23,7 +22,6 @@ namespace TodoList
 		public Profile? GetById(Guid id)
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
 
 			return context.Profiles
 				.AsNoTracking()
@@ -34,7 +32,6 @@ namespace TodoList
 		public Profile? GetByLogin(string login)
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
 
 			return context.Profiles
 				.AsNoTracking()
@@ -45,7 +42,6 @@ namespace TodoList
 		public Profile? GetByCredentials(string login, string password)
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
 
 			return context.Profiles
 				.AsNoTracking()
@@ -56,7 +52,6 @@ namespace TodoList
 		public void Add(Profile profile)
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
 
 			bool loginExists = context.Profiles.Any(existingProfile => existingProfile.Login == profile.Login);
 			if (loginExists)
@@ -71,7 +66,6 @@ namespace TodoList
 		public void Update(Profile profile)
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
 
 			var existingProfile = context.Profiles.FirstOrDefault(item => item.Id == profile.Id);
 			if (existingProfile == null)
@@ -97,7 +91,6 @@ namespace TodoList
 		public void Delete(Guid id)
 		{
 			using var context = new AppDbContext();
-			context.Database.EnsureCreated();
 
 			var existingProfile = context.Profiles.FirstOrDefault(profile => profile.Id == id);
 			if (existingProfile == null)
