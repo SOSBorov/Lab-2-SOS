@@ -30,6 +30,10 @@ namespace TodoList
 
 		public DateTime LastUpdated { get; set; }
 
+		public Guid ProfileId { get; set; }
+
+		public Profile? Profile { get; set; }
+
 		public void UpdateText(string newText)
 		{
 			Text = newText;

@@ -151,7 +151,8 @@ namespace TodoList
 							Id = int.Parse(parts[0]),
 							Text = parts[1].Replace("\\n", "\n"),
 							Status = Enum.Parse<TodoStatus>(parts[2], true),
-							LastUpdated = DateTime.Parse(parts[3], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind)
+							LastUpdated = DateTime.Parse(parts[3], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
+							ProfileId = userId
 						};
 						loadedItems.Add(item);
 					}

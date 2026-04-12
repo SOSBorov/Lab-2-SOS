@@ -39,7 +39,8 @@ namespace TodoList
 			{
 				Id = _nextId++,
 				Text = text,
-				LastUpdated = DateTime.Now
+				LastUpdated = DateTime.Now,
+				ProfileId = AppInfo.CurrentProfile?.Id ?? Guid.Empty
 			};
 
 			_items.Add(newItem);
