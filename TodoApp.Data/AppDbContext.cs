@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
 
 	public DbSet<TodoItem> Todos => Set<TodoItem>();
 	public DbSet<Profile> Profiles => Set<Profile>();
+	public DbSet<User> Users => Set<User>();
 
 	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 	{
@@ -93,6 +94,42 @@ public class AppDbContext : DbContext
 			entity.ToTable(table =>
 			{
 				table.HasCheckConstraint("CK_TodoItem_Text_NotEmpty", "length(trim(Text)) >= 1");
+			});
+		});
+
+		modelBuilder.Entity<User>(entity =>
+		{
+			entity.HasKey(user => user.Id);
+			entity.Property(user => user.Id).ValueGeneratedOnAdd();
+
+			entity.Property(user => user.Username)
+				.IsRequired()
+				.HasMaxLength(50);
+
+			entity.Property(user => user.Email)
+				.IsRequired()
+				.HasMaxLength(100);
+
+			entity.Property(user => user.PasswordHash)
+				.IsRequired()
+				.HasMaxLength(500);
+
+			entity.Property(user => user.Role)
+				.IsRequired()
+				.HasMaxLength(20);
+
+			entity.HasIndex(user => user.Username)
+				.IsUnique();
+
+			entity.HasIndex(user => user.Email)
+				.IsUnique();
+
+			entity.ToTable(table =>
+			{
+				table.HasCheckConstraint("CK_User_Username_NotEmpty", "length(trim(Username)) >= 1");
+				table.HasCheckConstraint("CK_User_Email_NotEmpty", "length(trim(Email)) >= 1");
+				table.HasCheckConstraint("CK_User_PasswordHash_NotEmpty", "length(trim(PasswordHash)) >= 1");
+				table.HasCheckConstraint("CK_User_Role_NotEmpty", "length(trim(Role)) >= 1");
 			});
 		});
 	}

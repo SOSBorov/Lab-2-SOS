@@ -2,13 +2,13 @@ namespace TodoApp.Api.DTOs;
 
 public class LoginResponse
 {
-	public Guid Id { get; set; }
+	public int Id { get; set; }
 
-	public string Login { get; set; } = string.Empty;
+	public string Username { get; set; } = string.Empty;
 
-	public string FirstName { get; set; } = string.Empty;
+	public string Email { get; set; } = string.Empty;
 
-	public string? LastName { get; set; }
+	public string Role { get; set; } = string.Empty;
 
-	public int BirthYear { get; set; }
+	public string Token { get; set; } = string.Empty;
 }
