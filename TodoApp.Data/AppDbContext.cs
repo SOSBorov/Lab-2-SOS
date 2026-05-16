@@ -5,11 +5,25 @@ namespace TodoApp.Data;
 
 public class AppDbContext : DbContext
 {
+	public AppDbContext()
+	{
+	}
+
+	public AppDbContext(DbContextOptions<AppDbContext> options)
+		: base(options)
+	{
+	}
+
 	public DbSet<TodoItem> Todos => Set<TodoItem>();
 	public DbSet<Profile> Profiles => Set<Profile>();
 
 	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 	{
+		if (optionsBuilder.IsConfigured)
+		{
+			return;
+		}
+
 		string dbPath = Path.Combine(AppContext.BaseDirectory, "todos.db");
 		optionsBuilder.UseSqlite($"Data Source={dbPath}");
 	}
