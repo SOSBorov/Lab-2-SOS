@@ -1,97 +1,103 @@
 using System.Collections.ObjectModel;
-using Microsoft.EntityFrameworkCore;
-using TodoApp.Data;
+using System.Net;
 using TodoApp.Models;
 
 namespace TodoApp.Desktop.Services;
 
 public class DesktopStateService
 {
-	private readonly ProfileRepository _profileRepository;
-	private readonly TodoRepository _todoRepository;
+	private readonly AuthApiClient _authApiClient;
+	private readonly TodoApiClient _todoApiClient;
+	private string? _token;
 
-	public DesktopStateService()
+	public DesktopStateService(AuthApiClient authApiClient, TodoApiClient todoApiClient)
 	{
-		using var context = new AppDbContext();
-		context.Database.Migrate();
+		_authApiClient = authApiClient;
+		_todoApiClient = todoApiClient;
 
-		_profileRepository = new ProfileRepository();
-		_todoRepository = new TodoRepository();
-
-		Profiles = new ObservableCollection<Profile>();
 		Tasks = new ObservableCollection<TodoItem>();
-
-		ReloadProfiles();
 	}
 
-	public ObservableCollection<Profile> Profiles { get; }
 	public ObservableCollection<TodoItem> Tasks { get; }
-	public Profile? CurrentProfile { get; private set; }
+	public Guid? CurrentProfileId { get; private set; }
+	public string CurrentUserDisplay { get; private set; } = "Пользователь не выбран";
+	public string CurrentEmail { get; private set; } = string.Empty;
 
-	public bool Login(string login, string password)
+	public bool Login(string loginOrEmail, string password)
 	{
-		var profile = _profileRepository.GetByCredentials(login, password);
-		if (profile == null)
+		string email = NormalizeEmail(loginOrEmail);
+		AuthResponse authResponse;
+
+		try
+		{
+			authResponse = _authApiClient.LoginAsync(email, password).GetAwaiter().GetResult();
+		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
 		{
 			return false;
 		}
 
-		CurrentProfile = profile;
-		ReloadProfiles();
+		_token = authResponse.Token;
+		_todoApiClient.SetToken(_token);
+		CurrentProfileId = authResponse.ProfileId;
+		CurrentEmail = authResponse.Email;
+		CurrentUserDisplay = BuildCurrentUserDisplay(authResponse);
+
 		ReloadTasksForCurrentProfile();
 		return true;
 	}
 
 	public void Logout()
 	{
-		CurrentProfile = null;
+		_token = null;
+		CurrentProfileId = null;
+		CurrentEmail = string.Empty;
+		CurrentUserDisplay = "Пользователь не выбран";
+		_todoApiClient.SetToken(null);
 		Tasks.Clear();
 	}
 
-	public Profile RegisterProfile(string login, string password, string firstName, string? lastName, int birthYear)
+	public void RegisterProfile(string login, string password, string firstName, string? lastName, int birthYear)
 	{
-		var profile = new Profile(login, password, firstName, lastName, birthYear);
-		_profileRepository.Add(profile);
-		ReloadProfiles();
-		CurrentProfile = _profileRepository.GetByCredentials(login, password) ?? profile;
-		ReloadTasksForCurrentProfile();
-		return CurrentProfile;
-	}
+		string username = NormalizeUsername(login);
+		string email = NormalizeEmail(login);
 
-	public void ReloadProfiles()
-	{
-		ReplaceCollection(Profiles, _profileRepository.GetAll());
+		_authApiClient.RegisterAsync(username, email, password, firstName.Trim(), lastName?.Trim(), birthYear)
+			.GetAwaiter()
+			.GetResult();
+
+		if (!Login(login, password))
+		{
+			throw new InvalidOperationException("Не удалось выполнить вход после регистрации.");
+		}
 	}
 
 	public void ReloadTasksForCurrentProfile()
 	{
-		if (CurrentProfile == null)
+		EnsureAuthorized();
+
+		if (!CurrentProfileId.HasValue)
 		{
 			Tasks.Clear();
 			return;
 		}
 
-		ReplaceCollection(Tasks, _todoRepository.GetAllByProfile(CurrentProfile.Id));
+		List<TodoItem> tasks = _todoApiClient.GetAllAsync()
+			.GetAwaiter()
+			.GetResult()
+			.Where(todo => todo.ProfileId == CurrentProfileId.Value)
+			.OrderBy(todo => todo.Id)
+			.ToList();
+
+		ReplaceCollection(Tasks, tasks);
 	}
 
 	public TodoItem AddTask(string text, TodoStatus status)
 	{
-		if (CurrentProfile == null)
-		{
-			throw new InvalidOperationException("Нужно войти в профиль.");
-		}
-
-		var item = new TodoItem
-		{
-			Id = Tasks.Any() ? Tasks.Max(task => task.Id) + 1 : 1,
-			Text = text.Trim(),
-			Status = status,
-			CreatedAt = DateTime.Now,
-			LastUpdated = DateTime.Now,
-			ProfileId = CurrentProfile.Id
-		};
-
-		_todoRepository.Add(item);
+		EnsureAuthorized();
+		_ = _todoApiClient.CreateAsync(text.Trim(), status, CurrentProfileId!.Value)
+			.GetAwaiter()
+			.GetResult();
 		ReloadTasksForCurrentProfile();
 
 		return Tasks.OrderByDescending(task => task.Id).First();
@@ -99,24 +105,68 @@ public class DesktopStateService
 
 	public void UpdateTask(TodoItem task, string newText, TodoStatus newStatus)
 	{
-		task.Text = newText.Trim();
-		task.Status = newStatus;
-		task.LastUpdated = DateTime.Now;
-
-		_todoRepository.Update(task);
+		EnsureAuthorized();
+		_ = _todoApiClient.UpdateAsync(task.Id, newText.Trim(), newStatus)
+			.GetAwaiter()
+			.GetResult();
 		ReloadTasksForCurrentProfile();
 	}
 
 	public void DeleteTask(TodoItem task)
 	{
-		_todoRepository.Delete(task.Id);
+		EnsureAuthorized();
+		_todoApiClient.DeleteAsync(task.Id)
+			.GetAwaiter()
+			.GetResult();
 		ReloadTasksForCurrentProfile();
 	}
 
 	public void UpdateTaskStatus(TodoItem task, TodoStatus status)
 	{
-		_todoRepository.SetStatus(task.Id, status);
+		EnsureAuthorized();
+		_ = _todoApiClient.SetStatusAsync(task.Id, status)
+			.GetAwaiter()
+			.GetResult();
 		ReloadTasksForCurrentProfile();
+	}
+
+	private void EnsureAuthorized()
+	{
+		if (string.IsNullOrWhiteSpace(_token) || !CurrentProfileId.HasValue)
+		{
+			throw new InvalidOperationException("Сначала нужно войти в приложение через API.");
+		}
+	}
+
+	private static string NormalizeUsername(string loginOrEmail)
+	{
+		if (string.IsNullOrWhiteSpace(loginOrEmail))
+		{
+			return string.Empty;
+		}
+
+		string trimmed = loginOrEmail.Trim();
+		int atIndex = trimmed.IndexOf('@');
+		return atIndex > 0 ? trimmed[..atIndex] : trimmed;
+	}
+
+	private static string NormalizeEmail(string loginOrEmail)
+	{
+		string trimmed = loginOrEmail.Trim();
+		return trimmed.Contains('@')
+			? trimmed
+			: $"{trimmed}@todoapp.local";
+	}
+
+	private static string BuildCurrentUserDisplay(AuthResponse authResponse)
+	{
+		string fullName = $"{authResponse.FirstName} {authResponse.LastName}".Trim();
+		if (string.IsNullOrWhiteSpace(fullName))
+		{
+			fullName = authResponse.Username;
+		}
+
+		return $"Пользователь: {fullName}, Email: {authResponse.Email}";
 	}
 
 	private static void ReplaceCollection<T>(ObservableCollection<T> target, IEnumerable<T> source)

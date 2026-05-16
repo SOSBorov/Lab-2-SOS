@@ -37,18 +37,27 @@ public class AuthController : ControllerBase
 			return Conflict("Пользователь с таким email уже существует.");
 		}
 
+		Profile profile = new(
+			request.Username,
+			request.Password,
+			request.FirstName,
+			request.LastName,
+			request.BirthYear);
+
 		User user = new()
 		{
 			Username = request.Username,
 			Email = request.Email,
 			PasswordHash = _passwordHasher.HashPassword(request.Password),
-			Role = "User"
+			Role = "User",
+			ProfileId = profile.Id
 		};
 
+		_context.Profiles.Add(profile);
 		_context.Users.Add(user);
 		await _context.SaveChangesAsync();
 
-		return Created(string.Empty, MapToResponse(user, string.Empty));
+		return Created(string.Empty, MapToResponse(user, profile, string.Empty));
 	}
 
 	[HttpPost("login")]
@@ -66,11 +75,17 @@ public class AuthController : ControllerBase
 			return Unauthorized("Неверный email или пароль.");
 		}
 
+		Profile? profile = await _context.Profiles.FirstOrDefaultAsync(item => item.Id == user.ProfileId);
+		if (profile == null)
+		{
+			return Unauthorized("Связанный профиль пользователя не найден.");
+		}
+
 		string token = _jwtTokenService.CreateToken(user);
-		return Ok(MapToResponse(user, token));
+		return Ok(MapToResponse(user, profile, token));
 	}
 
-	private static LoginResponse MapToResponse(User user, string token)
+	private static LoginResponse MapToResponse(User user, Profile profile, string token)
 	{
 		return new LoginResponse
 		{
@@ -78,7 +93,11 @@ public class AuthController : ControllerBase
 			Username = user.Username,
 			Email = user.Email,
 			Role = user.Role,
-			Token = token
+			Token = token,
+			ProfileId = user.ProfileId,
+			FirstName = profile.FirstName,
+			LastName = profile.LastName,
+			BirthYear = profile.BirthYear
 		};
 	}
 }

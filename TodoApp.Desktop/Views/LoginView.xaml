@@ -20,7 +20,7 @@
                            Foreground="#DCE7F3"
                            FontSize="18"
                            Margin="0,12,0,18" />
-                <TextBlock Text="Теперь интерфейс подключается к реальной базе SQLite через TodoRepository и ProfileRepository."
+                <TextBlock Text="Теперь интерфейс работает не с базой напрямую, а через ASP.NET Core Web API."
                            Foreground="#DCE7F3"
                            TextWrapping="Wrap"
                            FontSize="16"
@@ -56,7 +56,7 @@
                            Foreground="#5E7288"
                            TextWrapping="Wrap" />
 
-                <TextBlock Text="Логин" Foreground="#274864" />
+                <TextBlock Text="Email или логин" Foreground="#274864" />
                 <TextBox Text="{Binding Login, UpdateSourceTrigger=PropertyChanged}"
                          Margin="0,6,0,14"
                          Padding="12"

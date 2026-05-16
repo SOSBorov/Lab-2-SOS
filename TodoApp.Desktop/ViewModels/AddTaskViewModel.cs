@@ -10,7 +10,7 @@ public class AddTaskViewModel : ViewModelBase
 	private readonly NavigationService _navigationService;
 	private string _taskText = string.Empty;
 	private TodoStatus _selectedStatus = TodoStatus.NotStarted;
-	private string _statusMessage = "Заполни форму новой задачи. После сохранения запись уйдёт в SQLite.";
+	private string _statusMessage = "Заполни форму новой задачи. После сохранения запись уйдёт в Web API.";
 
 	public AddTaskViewModel(NavigationService navigationService)
 	{

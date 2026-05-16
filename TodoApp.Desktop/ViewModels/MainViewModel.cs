@@ -1,3 +1,4 @@
+using System.Net.Http;
 using TodoApp.Desktop.Services;
 
 namespace TodoApp.Desktop.ViewModels;
@@ -9,7 +10,20 @@ public class MainViewModel : ViewModelBase
 
 	public MainViewModel()
 	{
-		var state = new DesktopStateService();
+		HttpClient authHttpClient = new()
+		{
+			BaseAddress = new Uri("http://localhost:5249")
+		};
+
+		HttpClient todoHttpClient = new()
+		{
+			BaseAddress = new Uri("http://localhost:5249")
+		};
+
+		var state = new DesktopStateService(
+			new AuthApiClient(authHttpClient),
+			new TodoApiClient(todoHttpClient));
+
 		_navigationService = new NavigationService(state);
 		_navigationService.CurrentViewModelChanged += viewModel => CurrentViewModel = viewModel;
 		_navigationService.ShowLogin();

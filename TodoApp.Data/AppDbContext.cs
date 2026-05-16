@@ -118,11 +118,22 @@ public class AppDbContext : DbContext
 				.IsRequired()
 				.HasMaxLength(20);
 
+			entity.Property(user => user.ProfileId)
+				.IsRequired();
+
 			entity.HasIndex(user => user.Username)
 				.IsUnique();
 
 			entity.HasIndex(user => user.Email)
 				.IsUnique();
+
+			entity.HasIndex(user => user.ProfileId)
+				.IsUnique();
+
+			entity.HasOne<Profile>()
+				.WithMany()
+				.HasForeignKey(user => user.ProfileId)
+				.OnDelete(DeleteBehavior.Cascade);
 
 			entity.ToTable(table =>
 			{

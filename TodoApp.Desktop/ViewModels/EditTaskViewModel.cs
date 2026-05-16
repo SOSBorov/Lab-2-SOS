@@ -11,7 +11,7 @@ public class EditTaskViewModel : ViewModelBase
 	private readonly TodoItem _sourceTask;
 	private string _taskText;
 	private TodoStatus _selectedStatus;
-	private string _statusMessage = "Измени текст или статус задачи. После сохранения изменения попадут в SQLite.";
+	private string _statusMessage = "Измени текст или статус задачи. После сохранения изменения уйдут в Web API.";
 
 	public EditTaskViewModel(NavigationService navigationService, TodoItem task)
 	{

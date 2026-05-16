@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TodoApp.Models\TodoApp.Models.csproj" />
-    <ProjectReference Include="..\TodoApp.Data\TodoApp.Data.csproj" />
   </ItemGroup>
 
 </Project>

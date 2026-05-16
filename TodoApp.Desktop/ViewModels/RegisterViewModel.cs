@@ -11,7 +11,7 @@ public class RegisterViewModel : ViewModelBase
 	private string _firstName = string.Empty;
 	private string _lastName = string.Empty;
 	private int _birthYear = DateTime.Today.Year;
-	private string _statusMessage = "Создай профиль. После регистрации он сразу сохранится в SQLite.";
+	private string _statusMessage = "Создай пользователя. После регистрации данные уйдут в Web API.";
 
 	public RegisterViewModel(NavigationService navigationService)
 	{

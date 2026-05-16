@@ -89,7 +89,7 @@ public class TodoListViewModel : ViewModelBase
 	}
 
 	public string CurrentProfileDisplay =>
-		_navigationService.State.CurrentProfile?.GetInfo() ?? "Профиль не выбран";
+		_navigationService.State.CurrentUserDisplay;
 
 	public int VisibleTaskCount => _tasksView.Cast<object>().Count();
 

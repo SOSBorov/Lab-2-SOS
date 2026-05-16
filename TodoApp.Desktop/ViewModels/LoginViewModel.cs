@@ -8,7 +8,7 @@ public class LoginViewModel : ViewModelBase
 	private readonly NavigationService _navigationService;
 	private string _login = string.Empty;
 	private string _password = string.Empty;
-	private string _statusMessage = "Введи логин и пароль. Если профиля нет, сначала зарегистрируйся.";
+	private string _statusMessage = "Введи email или логин и пароль. После перехода на API вход идёт через JWT.";
 
 	public LoginViewModel(NavigationService navigationService)
 	{
@@ -42,14 +42,14 @@ public class LoginViewModel : ViewModelBase
 	{
 		if (string.IsNullOrWhiteSpace(Login) || string.IsNullOrWhiteSpace(Password))
 		{
-			StatusMessage = "Логин и пароль обязательны.";
+			StatusMessage = "Email или логин и пароль обязательны.";
 			return;
 		}
 
 		bool success = _navigationService.State.Login(Login.Trim(), Password);
 		if (!success)
 		{
-			StatusMessage = "Пользователь не найден. Проверь логин и пароль.";
+			StatusMessage = "Пользователь не найден. Проверь email и пароль.";
 			return;
 		}
 

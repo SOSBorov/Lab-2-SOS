@@ -1,6 +1,6 @@
-namespace TodoApp.Api.DTOs;
+namespace TodoApp.Desktop.Services;
 
-public class LoginResponse
+public class AuthResponse
 {
 	public int Id { get; set; }
 
@@ -19,4 +19,9 @@ public class LoginResponse
 	public string? LastName { get; set; }
 
 	public int BirthYear { get; set; }
+}
+
+public class ApiErrorResponse
+{
+	public string? Message { get; set; }
 }
