@@ -62,9 +62,10 @@ public class DesktopStateService
 		string username = NormalizeUsername(login);
 		string email = NormalizeEmail(login);
 
-		_authApiClient.RegisterAsync(username, email, password, firstName.Trim(), lastName?.Trim(), birthYear)
-			.GetAwaiter()
-			.GetResult();
+		ExecuteApi(() =>
+			_authApiClient.RegisterAsync(username, email, password, firstName.Trim(), lastName?.Trim(), birthYear)
+				.GetAwaiter()
+				.GetResult());
 
 		if (!Login(login, password))
 		{
@@ -82,9 +83,9 @@ public class DesktopStateService
 			return;
 		}
 
-		List<TodoItem> tasks = _todoApiClient.GetAllAsync()
+		List<TodoItem> tasks = ExecuteApi(() => _todoApiClient.GetAllAsync()
 			.GetAwaiter()
-			.GetResult()
+			.GetResult())
 			.Where(todo => todo.ProfileId == CurrentProfileId.Value)
 			.OrderBy(todo => todo.Id)
 			.ToList();
@@ -95,9 +96,10 @@ public class DesktopStateService
 	public TodoItem AddTask(string text, TodoStatus status)
 	{
 		EnsureAuthorized();
-		_ = _todoApiClient.CreateAsync(text.Trim(), status, CurrentProfileId!.Value)
-			.GetAwaiter()
-			.GetResult();
+		_ = ExecuteApi(() =>
+			_todoApiClient.CreateAsync(text.Trim(), status, CurrentProfileId!.Value)
+				.GetAwaiter()
+				.GetResult());
 		ReloadTasksForCurrentProfile();
 
 		return Tasks.OrderByDescending(task => task.Id).First();
@@ -106,27 +108,30 @@ public class DesktopStateService
 	public void UpdateTask(TodoItem task, string newText, TodoStatus newStatus)
 	{
 		EnsureAuthorized();
-		_ = _todoApiClient.UpdateAsync(task.Id, newText.Trim(), newStatus)
-			.GetAwaiter()
-			.GetResult();
+		_ = ExecuteApi(() =>
+			_todoApiClient.UpdateAsync(task.Id, newText.Trim(), newStatus)
+				.GetAwaiter()
+				.GetResult());
 		ReloadTasksForCurrentProfile();
 	}
 
 	public void DeleteTask(TodoItem task)
 	{
 		EnsureAuthorized();
-		_todoApiClient.DeleteAsync(task.Id)
-			.GetAwaiter()
-			.GetResult();
+		ExecuteApi(() =>
+			_todoApiClient.DeleteAsync(task.Id)
+				.GetAwaiter()
+				.GetResult());
 		ReloadTasksForCurrentProfile();
 	}
 
 	public void UpdateTaskStatus(TodoItem task, TodoStatus status)
 	{
 		EnsureAuthorized();
-		_ = _todoApiClient.SetStatusAsync(task.Id, status)
-			.GetAwaiter()
-			.GetResult();
+		_ = ExecuteApi(() =>
+			_todoApiClient.SetStatusAsync(task.Id, status)
+				.GetAwaiter()
+				.GetResult());
 		ReloadTasksForCurrentProfile();
 	}
 
@@ -135,6 +140,40 @@ public class DesktopStateService
 		if (string.IsNullOrWhiteSpace(_token) || !CurrentProfileId.HasValue)
 		{
 			throw new InvalidOperationException("Сначала нужно войти в приложение через API.");
+		}
+	}
+
+	private void ExecuteApi(Action action)
+	{
+		try
+		{
+			action();
+		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Logout();
+			throw new SessionExpiredException("Сессия истекла. Выполни вход заново.");
+		}
+		catch (ApiException ex)
+		{
+			throw new InvalidOperationException(ex.Message);
+		}
+	}
+
+	private T ExecuteApi<T>(Func<T> action)
+	{
+		try
+		{
+			return action();
+		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Logout();
+			throw new SessionExpiredException("Сессия истекла. Выполни вход заново.");
+		}
+		catch (ApiException ex)
+		{
+			throw new InvalidOperationException(ex.Message);
 		}
 	}
 

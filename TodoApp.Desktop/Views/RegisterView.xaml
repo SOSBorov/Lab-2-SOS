@@ -36,28 +36,33 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Margin="10,0,0,12">
+                        <TextBlock Text="Email" />
+                        <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,6,0,0" Padding="12" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Margin="0,0,10,12">
                         <TextBlock Text="Пароль" />
                         <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" Margin="0,6,0,0" Padding="12" />
                     </StackPanel>
 
-                    <StackPanel Grid.Row="1" Margin="0,0,10,12">
+                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,12">
                         <TextBlock Text="Имя" />
                         <TextBox Text="{Binding FirstName, UpdateSourceTrigger=PropertyChanged}" Margin="0,6,0,0" Padding="12" />
                     </StackPanel>
 
-                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,12">
+                    <StackPanel Grid.Row="2" Margin="0,0,10,12">
                         <TextBlock Text="Фамилия" />
                         <TextBox Text="{Binding LastName, UpdateSourceTrigger=PropertyChanged}" Margin="0,6,0,0" Padding="12" />
                     </StackPanel>
 
-                    <StackPanel Grid.Row="2" Margin="0,0,10,0">
+                    <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,0,12">
                         <TextBlock Text="Год рождения" />
                         <TextBox Text="{Binding BirthYear, UpdateSourceTrigger=PropertyChanged}" Margin="0,6,0,0" Padding="12" />
                     </StackPanel>
                 </Grid>
 
                 <StackPanel Orientation="Horizontal" Margin="0,24,0,0">
-                    <Button Content="Создать профиль"
+                    <Button Content="Создать пользователя"
                             Command="{Binding RegisterCommand}"
                             Padding="18,12"
                             Background="#1F8A70"

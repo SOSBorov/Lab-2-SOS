@@ -61,6 +61,10 @@ public class EditTaskViewModel : ViewModelBase
 			_navigationService.State.UpdateTask(_sourceTask, TaskText, SelectedStatus);
 			_navigationService.ShowTodoList();
 		}
+		catch (SessionExpiredException ex)
+		{
+			_navigationService.ShowLogin(ex.Message);
+		}
 		catch (Exception ex)
 		{
 			StatusMessage = ex.Message;

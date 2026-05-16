@@ -120,9 +120,16 @@ public class TodoListViewModel : ViewModelBase
 			return;
 		}
 
-		_navigationService.State.DeleteTask(SelectedTask);
-		SelectedTask = null;
-		RefreshTasks();
+		try
+		{
+			_navigationService.State.DeleteTask(SelectedTask);
+			SelectedTask = null;
+			RefreshTasks();
+		}
+		catch (SessionExpiredException ex)
+		{
+			_navigationService.ShowLogin(ex.Message);
+		}
 	}
 
 	private void ApplyStatus()
@@ -132,17 +139,31 @@ public class TodoListViewModel : ViewModelBase
 			return;
 		}
 
-		_navigationService.State.UpdateTaskStatus(SelectedTask, SelectedStatusForTask);
-		SelectedTask = Tasks.FirstOrDefault(task => task.Id == SelectedTask?.Id);
-		RefreshTasks();
+		try
+		{
+			_navigationService.State.UpdateTaskStatus(SelectedTask, SelectedStatusForTask);
+			SelectedTask = Tasks.FirstOrDefault(task => task.Id == SelectedTask?.Id);
+			RefreshTasks();
+		}
+		catch (SessionExpiredException ex)
+		{
+			_navigationService.ShowLogin(ex.Message);
+		}
 	}
 
 	private void RefreshTasks()
 	{
-		_navigationService.State.ReloadTasksForCurrentProfile();
-		_tasksView.Refresh();
-		OnPropertyChanged(nameof(VisibleTaskCount));
-		OnPropertyChanged(nameof(CurrentProfileDisplay));
+		try
+		{
+			_navigationService.State.ReloadTasksForCurrentProfile();
+			_tasksView.Refresh();
+			OnPropertyChanged(nameof(VisibleTaskCount));
+			OnPropertyChanged(nameof(CurrentProfileDisplay));
+		}
+		catch (SessionExpiredException ex)
+		{
+			_navigationService.ShowLogin(ex.Message);
+		}
 	}
 
 	private void Logout()

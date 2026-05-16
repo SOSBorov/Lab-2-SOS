@@ -56,6 +56,10 @@ public class AddTaskViewModel : ViewModelBase
 			_navigationService.State.AddTask(TaskText, SelectedStatus);
 			_navigationService.ShowTodoList();
 		}
+		catch (SessionExpiredException ex)
+		{
+			_navigationService.ShowLogin(ex.Message);
+		}
 		catch (Exception ex)
 		{
 			StatusMessage = ex.Message;

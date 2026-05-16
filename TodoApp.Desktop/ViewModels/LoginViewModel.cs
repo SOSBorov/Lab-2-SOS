@@ -6,21 +6,26 @@ namespace TodoApp.Desktop.ViewModels;
 public class LoginViewModel : ViewModelBase
 {
 	private readonly NavigationService _navigationService;
-	private string _login = string.Empty;
+	private string _email = string.Empty;
 	private string _password = string.Empty;
 	private string _statusMessage = "Введи email или логин и пароль. После перехода на API вход идёт через JWT.";
 
-	public LoginViewModel(NavigationService navigationService)
+	public LoginViewModel(NavigationService navigationService, string? statusMessage = null)
 	{
 		_navigationService = navigationService;
 		LoginCommand = new RelayCommand(ExecuteLogin);
-		OpenRegisterCommand = new RelayCommand(OpenRegister);
+		RegisterCommand = new RelayCommand(OpenRegister);
+
+		if (!string.IsNullOrWhiteSpace(statusMessage))
+		{
+			StatusMessage = statusMessage;
+		}
 	}
 
-	public string Login
+	public string Email
 	{
-		get => _login;
-		set => SetProperty(ref _login, value);
+		get => _email;
+		set => SetProperty(ref _email, value);
 	}
 
 	public string Password
@@ -36,25 +41,32 @@ public class LoginViewModel : ViewModelBase
 	}
 
 	public ICommand LoginCommand { get; }
-	public ICommand OpenRegisterCommand { get; }
+	public ICommand RegisterCommand { get; }
 
 	private void ExecuteLogin()
 	{
-		if (string.IsNullOrWhiteSpace(Login) || string.IsNullOrWhiteSpace(Password))
+		if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
 		{
 			StatusMessage = "Email или логин и пароль обязательны.";
 			return;
 		}
 
-		bool success = _navigationService.State.Login(Login.Trim(), Password);
-		if (!success)
+		try
 		{
-			StatusMessage = "Пользователь не найден. Проверь email и пароль.";
-			return;
-		}
+			bool success = _navigationService.State.Login(Email.Trim(), Password);
+			if (!success)
+			{
+				StatusMessage = "Пользователь не найден. Проверь email и пароль.";
+				return;
+			}
 
-		StatusMessage = "Вход выполнен успешно.";
-		_navigationService.ShowTodoList();
+			StatusMessage = "Вход выполнен успешно.";
+			_navigationService.ShowTodoList();
+		}
+		catch (Exception ex)
+		{
+			StatusMessage = ex.Message;
+		}
 	}
 
 	private void OpenRegister()

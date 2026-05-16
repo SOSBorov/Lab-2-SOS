@@ -30,9 +30,9 @@ public class NavigationService
 
 	public DesktopStateService State => _state;
 
-	public void ShowLogin()
+	public void ShowLogin(string? statusMessage = null)
 	{
-		Navigate(new LoginViewModel(this));
+		Navigate(new LoginViewModel(this, statusMessage));
 	}
 
 	public void ShowRegister()

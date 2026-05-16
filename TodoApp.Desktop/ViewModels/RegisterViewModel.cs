@@ -7,6 +7,7 @@ public class RegisterViewModel : ViewModelBase
 {
 	private readonly NavigationService _navigationService;
 	private string _login = string.Empty;
+	private string _email = string.Empty;
 	private string _password = string.Empty;
 	private string _firstName = string.Empty;
 	private string _lastName = string.Empty;
@@ -24,6 +25,12 @@ public class RegisterViewModel : ViewModelBase
 	{
 		get => _login;
 		set => SetProperty(ref _login, value);
+	}
+
+	public string Email
+	{
+		get => _email;
+		set => SetProperty(ref _email, value);
 	}
 
 	public string Password
@@ -62,16 +69,17 @@ public class RegisterViewModel : ViewModelBase
 	private void ExecuteRegister()
 	{
 		if (string.IsNullOrWhiteSpace(Login) ||
+			string.IsNullOrWhiteSpace(Email) ||
 			string.IsNullOrWhiteSpace(Password) ||
 			string.IsNullOrWhiteSpace(FirstName))
 		{
-			StatusMessage = "Логин, пароль и имя обязательны.";
+			StatusMessage = "Логин, email, пароль и имя обязательны.";
 			return;
 		}
 
 		try
 		{
-			_navigationService.State.RegisterProfile(Login.Trim(), Password, FirstName.Trim(), LastName?.Trim(), BirthYear);
+			_navigationService.State.RegisterProfile(Email.Trim(), Password, FirstName.Trim(), LastName?.Trim(), BirthYear);
 			_navigationService.ShowTodoList();
 		}
 		catch (Exception ex)
